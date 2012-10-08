@@ -1,0 +1,5 @@
+[1;32mmike@mikes-MacBook-Pro[0;31m [01;34m~[1;32m[0;31m [0;34m$[00m pwd
+/Users/mike
+[1;32mmike@mikes-MacBook-Pro[0;31m [01;34m~[1;32m[0;31m [0;34m$[00m echo "HELLO!"
+echo "HELLO" > ./agent.zip
+[1;32mmike@mikes-MacBook-Pro[0;31m [01;34m~[1;32m[0;31m [0;34m$[00m exit
