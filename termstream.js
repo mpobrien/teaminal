@@ -1,5 +1,6 @@
 inherits = require('util').inherits
 var STATES = {NORMAL:0, ESC:1, CSI:2, OSC:3, CHARSET:4, OSCIN :5, SKIP:6 }
+var debugMode = false;
 var SPECIAL_CHARS = 
     {
         NIL  : 0,
@@ -17,6 +18,7 @@ function BasicStream(){
     this.skipCounter = 0;
     this.state = STATES.NORMAL;
     this.currentParam = 0;
+    this.numchars = 0;
 }
 BasicStream.prototype.attach = function(screen){
     this.screen = screen;
@@ -28,9 +30,14 @@ BasicStream.prototype.dispatch = function(eventName, params){
     }
 }
 
+function debug(){
+    if(debugMode){
+        console.log(arguments);
+    }
+}
+
 BasicStream.prototype.setDebugMode = function(mode, verbose){
-    this.numchars = 0;
-    this.debugMode = mode
+    debugMode = mode
     this.verboseMode = verbose
     if(mode==true){
         //this.onAny(function(){
@@ -75,15 +82,15 @@ CSI_FUNCS = {
     98 : "repeatprecchar",
 }
 
-BasicStream.prototype.feed = function(character){
-    var str = character
-    var ch = str.charCodeAt(0)
+BasicStream.prototype.feed = function(ch){
+    //var ch = str.charCodeAt(0)
+    var str = String.fromCharCode(ch);
     if(ch>=32 && ch <=126){
-        strtest = str
+        strtest = String.fromCharCode(ch)
     }else{
         strtest = ''
     }
-    console.log("[STREAM]", "[", this.state, "]", "processing char:", ++this.numchars, ch, strtest );
+    debug("[STREAM]", "[", this.state, "]", "processing char:", ++this.numchars, ch, strtest );
     switch(this.state){
         case STATES.SKIP:
             this.skipCounter--;
@@ -115,7 +122,7 @@ BasicStream.prototype.feed = function(character){
                     this.state = STATES.ESC;
                     break;
                 default:
-                    console.log("Drawing", ch);
+                    debug("Drawing", ch);
                     this.dispatch("draw", str)
                     break;
             }
@@ -218,21 +225,21 @@ BasicStream.prototype.feed = function(character){
 
               // ESC = Application Keypad (DECPAM).
               case 61: //'='
-                console.log('Serial port requested application keypad.');
+                debug('Serial port requested application keypad.');
                 this.applicationKeypad = true;
                 this.state = STATES.NORMAL;
                 break;
 
               // ESC > Normal Keypad (DECPNM).
               case 62: //'>'
-                console.log('Switching back to normal keypad.');
+                debug('Switching back to normal keypad.');
                 this.applicationKeypad = false;
                 this.state = STATES.NORMAL;
                 break;
 
               default:
                 this.state = STATES.NORMAL;
-                console.log('Unknown ESC control: ' + ch + '.');
+                debug('Unknown ESC control: ' + ch + '.');
                 break;
             }
             break;
@@ -249,10 +256,10 @@ BasicStream.prototype.feed = function(character){
                 break;
             }
             break;
-            /*
         case STATES.OSCIN:
             switch(ch){
                 case 59:
+                    this.state = STATES.NORMAL;
                     break;
                 case 7:
                     this.screen.osc(this.oscprefix, this.oscdata)
@@ -264,14 +271,14 @@ BasicStream.prototype.feed = function(character){
                     break;
             }
             break;
-*/
         case STATES.OSC:
+            console.log("OSC", ch)
             if (ch >= 48 && ch <= 57) {
                 this.oscprefix = ch-48;
                 this.oscdata = []
                 this.state = STATES.OSCIN; 
             }else if (ch !== 27 && ch !== 7){
-                console.log('Unknown OSC code.', ch);
+                debug('Unknown OSC code.', ch);
                 this.state = STATES.NORMAL;
             }else if (ch === 27){
                 i++;
@@ -281,7 +288,7 @@ BasicStream.prototype.feed = function(character){
         case STATES.CSI:
             if (ch === 63 || ch === 62 || ch === 33) {
               this.prefix = str;
-              console.log("prefix is ", str);
+              debug("prefix is ", str);
               break;
             }
 
@@ -305,11 +312,11 @@ BasicStream.prototype.feed = function(character){
 
             this.state = STATES.NORMAL;
             var funcname = CSI_FUNCS[ch]
-            console.log(funcname)
+            debug(funcname)
             if(funcname){
                 this.dispatch(funcname, this.params)
             }else{
-                console.log("unknown:", ch)
+                debug("unknown:", ch)
             }
     }
 }

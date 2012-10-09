@@ -143,6 +143,37 @@ BasicScreen.prototype.display = function(){//{{{
     }
 }//}}}
 
+BasicScreen.prototype.log = function(){//{{{
+    var rowStrLen = Number(this.rows).toString().length
+    function padToLen(str, len){
+        while(str.length < len) str = " " + str
+        return str;
+    }
+    for(var i=0;i<this.rows;i++){
+        var rowtext = ""
+        rowtext += "[" + padToLen(Number(i).toString(), rowStrLen) + "]"
+        for(var j=0;j<this.cols;j++){
+            var outchar = this.data[i][j].d || " "
+            rowtext += outchar
+        }
+        console.log(rowtext)
+    }
+}//}}}
+
+
+BasicScreen.prototype.canvasDisplay = function(context){
+    COL_WIDTH = 8;
+    ROW_HEIGHT = 16;
+    for(var i=0;i<this.rows;i++){
+        for(var j=0;j<this.cols;j++){
+            var outchar = this.data[i][j].d
+            if(outchar){
+                context.fillText(outchar, COL_WIDTH * j + 2, ROW_HEIGHT * (i+1))
+            }
+        }
+    }
+}
+
 
 BasicScreen.prototype.defaultcharset = function(){
     console.log("defaultcharset!", arguments);
