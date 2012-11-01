@@ -8,6 +8,7 @@ var BasicStream = require('../termstream').BasicStream
 var BasicScreen = require('../screen').BasicScreen
 var strm = new BasicStream(); 
 var scrn = new BasicScreen(40, 80)
+scrn.debugMode = true
 strm.setDebugMode(true, true)
 strm.attach(scrn)
 
@@ -16,11 +17,11 @@ var filedata = fs.readFileSync(argv.file, 'utf-8')
 
 if(argv.r){
     for(var i=0;i<filedata.length;i++){
-        strm.feed(filedata[i])
+        strm.feed(filedata[i].charCodeAt(0))
     }
 }else{
     var lines = filedata.split("\n");
-    console.log("writing", lines.length, "lines", filedata.length, "bytes")
+    //console.log("writing", lines.length, "lines", filedata.length, "bytes")
     for(var i=0;i<lines.length;i++){
         var line = lines[i]
         if(line){
@@ -35,6 +36,7 @@ if(argv.r){
 console.log("done doin it.");
 
 scrn.display()
+//console.log(scrn.data)
 
 
 //inputdata = "\u001b]2;mike@new-host: ~\u0007"
