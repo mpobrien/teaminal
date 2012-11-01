@@ -8,14 +8,8 @@ MODES = { LNM : 20,
         }
 exports.MODES = MODES
 
+//exports.COLORS = ["black","red","green","yellow","blue","magenta","cyan","white","",""]
 /*
-linefeed
-carriagereturn
-backspace
-tab
-draw
-reset
-nextline
 index
 reverseindex
 defaultcharset
@@ -76,7 +70,14 @@ function BasicScreen(rows, columns){
         this.data.push(this.defaultLine(this.cols))
     }
     this.modes = {}
+    this.color = undefined;
     this.reset()
+}
+
+BasicScreen.prototype.debug = function(){
+    if(this.debugMode){
+        console.log.apply(console, arguments)
+    }
 }
 
 BasicScreen.prototype.ensureBounds = function(){//{{{
@@ -136,7 +137,7 @@ BasicScreen.prototype.display = function(){//{{{
     for(var i=0;i<this.rows;i++){
         process.stderr.write("[" + padToLen(Number(i).toString(), rowStrLen) + "]")
         for(var j=0;j<this.cols;j++){
-            var outchar = this.data[i][j].d || " "
+            var outchar = String.fromCharCode(this.data[i][j].d) || " "
             process.stderr.write(outchar)
         }
         process.stderr.write("\n")
@@ -156,10 +157,9 @@ BasicScreen.prototype.log = function(){//{{{
             var outchar = this.data[i][j].d || " "
             rowtext += outchar
         }
-        console.log(rowtext)
+        this.debug(rowtext)
     }
 }//}}}
-
 
 BasicScreen.prototype.canvasDisplay = function(context){
     COL_WIDTH = 8;
@@ -176,58 +176,109 @@ BasicScreen.prototype.canvasDisplay = function(context){
 
 
 BasicScreen.prototype.defaultcharset = function(){
-    console.log("defaultcharset!", arguments);
+    this.debug("defaultcharset!", arguments);
 }
 
 BasicScreen.prototype.setcharset = function(){
-    console.log("setcharset!", arguments);
+    this.debug("setcharset!", arguments);
 }
 
-BasicScreen.prototype.eraseinline = function(){
-    console.log("eraseinline!", arguments);
+BasicScreen.prototype.eraseinline = function(params){
+    if(!params || params[0] == 0){
+        for(var i=this.cursor.x;i<this.cols;i++){
+            this.data[this.cursor.y][i] = {}
+        }
+        //erase from cursor to EOL
+    }else if(params[0] == 1){
+        for(var i=0;i<=this.cursor.x;i++){
+            this.data[this.cursor.y][i] = {}
+        }
+        //erase from beginning of line to cursor inclusive
+    }else if(params[0] == 2){
+        for(var i=0;i<this.cols;i++){
+            this.data[this.cursor.y][i] = {}
+        }
+        //erase entire line
+    }
+    this.debug("eraseinline!", arguments);
 }
  
 BasicScreen.prototype.hvpos = function(){
-    console.log("hvpos!", arguments);
+    this.debug("hvpos!", arguments);
 }
 
 BasicScreen.prototype.resetmode = function(){
-    console.log("reset mode!", arguments);
+    this.debug("reset mode!", arguments);
 }
 
 BasicScreen.prototype.savecursor = function(){
-    console.log("savecursor!", arguments);
+    this.debug("savecursor!", arguments);
 }
 
 BasicScreen.prototype.restorecursor = function(){
-    console.log("restorecursor!", arguments);
+    this.debug("restorecursor!", arguments);
 }
  
 
 BasicScreen.prototype.senddevattrs = function(){
-    console.log("senddevattrs!", arguments);
+    this.debug("senddevattrs!", arguments);
 }
  
 
 BasicScreen.prototype.setmode = function(){
-    console.log("set mode!", arguments);
+    this.debug("set mode!", arguments);
 }
 
 BasicScreen.prototype.setscrollreg = function(){
-    console.log("set scroll reg!", arguments);
+    this.debug("set scroll reg!", arguments);
 }
 
 BasicScreen.prototype.charattrs = function(){
-    console.log("select graphic rendition!", arguments);
-
+    console.log("SGR", arguments)
+    this.debug("select graphic rendition!", arguments[0], arguments[1]);
+    if(arguments[0]){
+        var colorCode = arguments[0][0];
+        switch(colorCode){
+            case 0:
+                console.log("resetting color!");
+                this.color = undefined;
+                this.bold = false;
+                this.ul = false;
+                this.blink = false;
+                this.inverse = false;
+                this.invisible = false;
+                break;
+            case 1:
+                this.bold = true;
+                break;
+            case 4:
+                this.ul = true;
+                break;
+            case 5:
+                this.blink = true;
+                break;
+            case 7:
+                this.inverse = true;
+                break;
+            case 8:
+                this.invisible = true;
+                break;
+            default:
+                if(colorCode >= 30 && colorCode <= 39){
+                    this.color = colorCode - 30;
+                }else if(colorCode >= 40 && colorCode <= 49){
+                    this.bg = colorCode - 40;
+                }
+        }
+    }
 }
 
 BasicScreen.prototype.eraseindisplay = function(){
-    console.log("erase in display!", arguments);
+    this.debug("erase in display!", arguments);
 }
 
 BasicScreen.prototype.cursorpos = function(params){
-    console.log("cursor pos!", arguments);
+    this.debug("cursor pos!", arguments);
     var row = params[0] - 1;
     var col;
     if (params.length >= 2) { 
@@ -288,7 +339,10 @@ BasicScreen.prototype.draw = function(ch){
         this.insertChars(1)
     }
 
-    this.data[this.cursor.y][this.cursor.x] = {d:ch} //MOB TODO: set the cursor attrs here as well
+    this.debug("screen drawing",this.cursor.y, this.cursor.x, ch)
+    var b = {d:ch, c:this.color}
+    if(this.bold) b.bold = true
+    this.data[this.cursor.y][this.cursor.x] = b
     this.cursor.x += 1
 }
 

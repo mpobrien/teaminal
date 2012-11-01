@@ -846,14 +846,8 @@ require.define("/screen.js", function (require, module, exports, __dirname, __fi
         }
 exports.MODES = MODES
 
+//exports.COLORS = ["black","red","green","yellow","blue","magenta","cyan","white","",""]
 /*
-linefeed
-carriagereturn
-backspace
-tab
-draw
-reset
-nextline
 index
 reverseindex
 defaultcharset
@@ -914,7 +908,14 @@ function BasicScreen(rows, columns){
         this.data.push(this.defaultLine(this.cols))
     }
     this.modes = {}
+    this.color = undefined;
     this.reset()
+}
+
+BasicScreen.prototype.debug = function(){
+    if(this.debugMode){
+        console.log.apply(console, arguments)
+    }
 }
 
 BasicScreen.prototype.ensureBounds = function(){//{{{
@@ -974,7 +975,7 @@ BasicScreen.prototype.display = function(){//{{{
     for(var i=0;i<this.rows;i++){
         process.stderr.write("[" + padToLen(Number(i).toString(), rowStrLen) + "]")
         for(var j=0;j<this.cols;j++){
-            var outchar = this.data[i][j].d || " "
+            var outchar = String.fromCharCode(this.data[i][j].d) || " "
             process.stderr.write(outchar)
         }
         process.stderr.write("\n")
@@ -994,7 +995,7 @@ BasicScreen.prototype.log = function(){//{{{
             var outchar = this.data[i][j].d || " "
             rowtext += outchar
         }
-        console.log(rowtext)
+        this.debug(rowtext)
     }
 }//}}}
 
@@ -1014,58 +1015,109 @@ BasicScreen.prototype.canvasDisplay = function(context){
 
 
 BasicScreen.prototype.defaultcharset = function(){
-    console.log("defaultcharset!", arguments);
+    this.debug("defaultcharset!", arguments);
 }
 
 BasicScreen.prototype.setcharset = function(){
-    console.log("setcharset!", arguments);
+    this.debug("setcharset!", arguments);
 }
 
-BasicScreen.prototype.eraseinline = function(){
-    console.log("eraseinline!", arguments);
+BasicScreen.prototype.eraseinline = function(params){
+    if(!params || params[0] == 0){
+        for(var i=this.cursor.x;i<this.cols;i++){
+            this.data[this.cursor.y][i] = {}
+        }
+        //erase from cursor to EOL
+    }else if(params[0] == 1){
+        for(var i=0;i<=this.cursor.x;i++){
+            this.data[this.cursor.y][i] = {}
+        }
+        //erase from beginning of line to cursor inclusive
+    }else if(params[0] == 2){
+        for(var i=0;i<this.cols;i++){
+            this.data[this.cursor.y][i] = {}
+        }
+        //erase entire line
+    }
+    this.debug("eraseinline!", arguments);
 }
  
 BasicScreen.prototype.hvpos = function(){
-    console.log("hvpos!", arguments);
+    this.debug("hvpos!", arguments);
 }
 
 BasicScreen.prototype.resetmode = function(){
-    console.log("reset mode!", arguments);
+    this.debug("reset mode!", arguments);
 }
 
 BasicScreen.prototype.savecursor = function(){
-    console.log("savecursor!", arguments);
+    this.debug("savecursor!", arguments);
 }
 
 BasicScreen.prototype.restorecursor = function(){
-    console.log("restorecursor!", arguments);
+    this.debug("restorecursor!", arguments);
 }
  
 
 BasicScreen.prototype.senddevattrs = function(){
-    console.log("senddevattrs!", arguments);
+    this.debug("senddevattrs!", arguments);
 }
  
 
 BasicScreen.prototype.setmode = function(){
-    console.log("set mode!", arguments);
+    this.debug("set mode!", arguments);
 }
 
 BasicScreen.prototype.setscrollreg = function(){
-    console.log("set scroll reg!", arguments);
+    this.debug("set scroll reg!", arguments);
 }
 
 BasicScreen.prototype.charattrs = function(){
-    console.log("select graphic rendition!", arguments);
-
+    console.log("SGR", arguments)
+    this.debug("select graphic rendition!", arguments[0], arguments[1]);
+    if(arguments[0]){
+        var colorCode = arguments[0][0];
+        switch(colorCode){
+            case 0:
+                console.log("resetting color!");
+                this.color = undefined;
+                this.bold = false;
+                this.ul = false;
+                this.blink = false;
+                this.inverse = false;
+                this.invisible = false;
+                break;
+            case 1:
+                this.bold = true;
+                break;
+            case 4:
+                this.ul = true;
+                break;
+            case 5:
+                this.blink = true;
+                break;
+            case 7:
+                this.inverse = true;
+                break;
+            case 8:
+                this.invisible = true;
+                break;
+            default:
+                if(colorCode >= 30 && colorCode <= 39){
+                    this.color = colorCode - 30;
+                }else if(colorCode >= 40 && colorCode <= 49){
+                    this.bg = colorCode - 40;
+                }
+        }
+    }
 }
 
 BasicScreen.prototype.eraseindisplay = function(){
-    console.log("erase in display!", arguments);
+    this.debug("erase in display!", arguments);
 }
 
 BasicScreen.prototype.cursorpos = function(params){
-    console.log("cursor pos!", arguments);
+    this.debug("cursor pos!", arguments);
     var row = params[0] - 1;
     var col;
     if (params.length >= 2) { 
@@ -1126,7 +1178,10 @@ BasicScreen.prototype.draw = function(ch){
         this.insertChars(1)
     }
 
-    this.data[this.cursor.y][this.cursor.x] = {d:ch} //MOB TODO: set the cursor attrs here as well
+    this.debug("screen drawing",this.cursor.y, this.cursor.x, ch)
+    var b = {d:ch, c:this.color}
+    if(this.bold) b.bold = true
+    this.data[this.cursor.y][this.cursor.x] = b
     this.cursor.x += 1
 }
 
@@ -1185,9 +1240,9 @@ BasicStream.prototype.dispatch = function(eventName, params){
     }
 }
 
-function debug(){
+function debug(args){
     if(debugMode){
-        console.log(arguments);
+        console.log.apply(console, arguments);
     }
 }
 
@@ -1237,9 +1292,10 @@ CSI_FUNCS = {
     98 : "repeatprecchar",
 }
 
+
+//Expects a single byte as an integer
 BasicStream.prototype.feed = function(ch){
-    //var ch = str.charCodeAt(0)
-    var str = String.fromCharCode(ch);
+    //var str = String.fromCharCode(ch);
     if(ch>=32 && ch <=126){
         strtest = String.fromCharCode(ch)
     }else{
@@ -1254,6 +1310,7 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.NORMAL:
+            debug("normal mode " + ch)
             switch(ch){
                 case SPECIAL_CHARS.NIL:
                     break;
@@ -1277,8 +1334,8 @@ BasicStream.prototype.feed = function(ch){
                     this.state = STATES.ESC;
                     break;
                 default:
-                    debug("Drawing", ch);
-                    this.dispatch("draw", str)
+                    debug("Drawing ", ch);
+                    this.dispatch("draw", ch)
                     break;
             }
             break;
@@ -1399,19 +1456,20 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.CHARSET:
-            switch(str){
+            switch(ch){
               // DEC Special Character and Line Drawing Set.
-              case '0':
+              case 48: //'0':
                 this.dispatch("setcharset", "scld")
                 break;
               // United States (USASCII).
-              case 'B':
+              case 65: //'B':
               default:
                 this.dispatch("defaultcharset")
                 break;
             }
             break;
         case STATES.OSCIN:
+            debug("OSCIN");
             switch(ch){
                 case 59:
                     this.state = STATES.NORMAL;
@@ -1422,16 +1480,26 @@ BasicStream.prototype.feed = function(ch){
                     this.oscdata = []
                     break;
                 default:
-                    this.oscdata[this.oscdata.length] = str;
+                    this.oscdata[this.oscdata.length] = strtest;
                     break;
             }
             break;
         case STATES.OSC:
-            console.log("OSC", ch)
+            debug("OSC", ch)
+            if(ch !== 27 && ch !== 7){
+                //just ignore
+                break;
+            }else if(ch === 27){
+                this.skipCounter = 1;
+                this.state = STATES.SKIP;
+                break;
+            }
+            /*
             if (ch >= 48 && ch <= 57) {
                 this.oscprefix = ch-48;
                 this.oscdata = []
                 this.state = STATES.OSCIN; 
+                debug("oscin state")
             }else if (ch !== 27 && ch !== 7){
                 debug('Unknown OSC code.', ch);
                 this.state = STATES.NORMAL;
@@ -1439,11 +1507,11 @@ BasicStream.prototype.feed = function(ch){
                 i++;
                 // increment for the trailing slash in ST
             }
-            break;
+            break;*/
         case STATES.CSI:
             if (ch === 63 || ch === 62 || ch === 33) {
-              this.prefix = str;
-              debug("prefix is ", str);
+              this.prefix = ch;
+              debug("prefix is ", ch);
               break;
             }
 
@@ -1455,7 +1523,7 @@ BasicStream.prototype.feed = function(ch){
 
             // '$', '"', ' ', '\''
             if (ch === 36 || ch === 34 || ch === 32 || ch === 39) {
-              this.postfix = str;
+              this.postfix = ch;
               break;
             }
 
@@ -1481,7 +1549,32 @@ exports.BasicStream = BasicStream
 require("/termstream.js");
 
 require.define("/browserscreen.js", function (require, module, exports, __dirname, __filename) {
-    BrowserScreen = function(screen, context){
+    //var COLORS = require('./screen').COLORS
+var COLORS = [
+    '#000000', //BLACK
+    '#98565E',//RED 
+    '#66825D',//GREEN 
+    '#969176',//YELLOW 
+    '#4D6585',//BLUE 
+    '#967395',//MAGENTA 
+    '#5F7F7B',//CYAN 
+    '#BFBFBF']//WHITE 
+var BOLDCOLORS = [
+    '#000000', //BLACK
+    '#CFA3A9',//RED 
+    '#CAF7BB',//GREEN 
+    '#FFF8BC',//YELLOW 
+    '#83A3BE',//BLUE 
+    '#BBA9CF',//MAGENTA 
+    '#96CCCC',//CYAN 
+    '#FFFFFF',//WHITE 
+]
+
+exports.COLORS = ["black","red","green","yellow","blue","magenta","cyan","white","",""]
+
+
+
+BrowserScreen = function(screen, context){
     this.screen = screen
     this.context = context;
     this.backgroundColor = '#000'
@@ -1495,13 +1588,31 @@ BrowserScreen.prototype.clear = function(){
 }
 
 BrowserScreen.prototype.canvasDisplay = function(){
-    COL_WIDTH = 8;
-    ROW_HEIGHT = 16;
+    //this.context.font = '12px monospace';
+    COL_WIDTH = 7;
+    ROW_HEIGHT = 14;
     this.context.fillStyle = this.foregroundColor;
+    var curColor = undefined;
     for(var i=0;i<this.screen.rows;i++){
         for(var j=0;j<this.screen.cols;j++){
-            var outchar = this.screen.data[i][j].d
+            var ch = this.screen.data[i][j]
+            var outchar = String.fromCharCode(ch.d)
             if(outchar){
+                if(ch.c == undefined){
+                    this.foregroundColor = 'white'
+                    this.context.fillStyle = this.foregroundColor;
+                    this.context.font = '12px monospace';
+                }else if(ch.c != undefined && ch.c != curColor){
+                    curColor = ch.c
+                    this.foregroundColor = ch.bold ? BOLDCOLORS[ch.c] : COLORS[ch.c]
+                    if(ch.bold){
+                        this.context.font = 'bold 12px monospace';
+                    }else{
+                        this.context.font = '12px monospace';
+                    }
+                    this.context.fillStyle = this.foregroundColor;
+                    //console.log("color",this.foregroundColor, ch.bold)
+                }
                 this.context.fillText(outchar, COL_WIDTH * j + 2, ROW_HEIGHT * (i+1))
             }
         }

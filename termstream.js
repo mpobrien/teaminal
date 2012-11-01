@@ -30,9 +30,9 @@ BasicStream.prototype.dispatch = function(eventName, params){
     }
 }
 
-function debug(){
+function debug(args){
     if(debugMode){
-        console.log(arguments);
+        console.log.apply(console, arguments);
     }
 }
 
@@ -82,9 +82,10 @@ CSI_FUNCS = {
     98 : "repeatprecchar",
 }
 
+
+//Expects a single byte as an integer
 BasicStream.prototype.feed = function(ch){
-    //var ch = str.charCodeAt(0)
-    var str = String.fromCharCode(ch);
+    //var str = String.fromCharCode(ch);
     if(ch>=32 && ch <=126){
         strtest = String.fromCharCode(ch)
     }else{
@@ -99,6 +100,7 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.NORMAL:
+            debug("normal mode " + ch)
             switch(ch){
                 case SPECIAL_CHARS.NIL:
                     break;
@@ -122,8 +124,8 @@ BasicStream.prototype.feed = function(ch){
                     this.state = STATES.ESC;
                     break;
                 default:
-                    debug("Drawing", ch);
-                    this.dispatch("draw", str)
+                    debug("Drawing ", ch);
+                    this.dispatch("draw", ch)
                     break;
             }
             break;
@@ -244,19 +246,20 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.CHARSET:
-            switch(str){
+            switch(ch){
               // DEC Special Character and Line Drawing Set.
-              case '0':
+              case 48: //'0':
                 this.dispatch("setcharset", "scld")
                 break;
               // United States (USASCII).
-              case 'B':
+              case 65: //'B':
               default:
                 this.dispatch("defaultcharset")
                 break;
             }
             break;
         case STATES.OSCIN:
+            debug("OSCIN");
             switch(ch){
                 case 59:
                     this.state = STATES.NORMAL;
@@ -267,16 +270,26 @@ BasicStream.prototype.feed = function(ch){
                     this.oscdata = []
                     break;
                 default:
-                    this.oscdata[this.oscdata.length] = str;
+                    this.oscdata[this.oscdata.length] = strtest;
                     break;
             }
             break;
         case STATES.OSC:
-            console.log("OSC", ch)
+            debug("OSC", ch)
+            if(ch !== 27 && ch !== 7){
+                //just ignore
+                break;
+            }else if(ch === 27){
+                this.skipCounter = 1;
+                this.state = STATES.SKIP;
+                break;
+            }
+            /*
             if (ch >= 48 && ch <= 57) {
                 this.oscprefix = ch-48;
                 this.oscdata = []
                 this.state = STATES.OSCIN; 
+                debug("oscin state")
             }else if (ch !== 27 && ch !== 7){
                 debug('Unknown OSC code.', ch);
                 this.state = STATES.NORMAL;
@@ -284,11 +297,11 @@ BasicStream.prototype.feed = function(ch){
                 i++;
                 // increment for the trailing slash in ST
             }
-            break;
+            break;*/
         case STATES.CSI:
             if (ch === 63 || ch === 62 || ch === 33) {
-              this.prefix = str;
-              debug("prefix is ", str);
+              this.prefix = ch;
+              debug("prefix is ", ch);
               break;
             }
 
@@ -300,7 +313,7 @@ BasicStream.prototype.feed = function(ch){
 
             // '$', '"', ' ', '\''
             if (ch === 36 || ch === 34 || ch === 32 || ch === 39) {
-              this.postfix = str;
+              this.postfix = ch;
               break;
             }
 

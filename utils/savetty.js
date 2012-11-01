@@ -8,7 +8,7 @@ process.stdin.resume()
 outstream = fs.createWriteStream('outfile.txt', {flags:'w'})
 outstream.on("open", function(){
     var term = pty.spawn('bash', [], {
-          name: 'xterm-color',
+          name: 'xterm-256color',
           cols: 80,
           rows: 30,
           cwd: process.env.HOME,
