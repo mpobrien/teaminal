@@ -995,10 +995,8 @@ BasicScreen.prototype.log = function(){//{{{
             var outchar = this.data[i][j].d || " "
             rowtext += outchar
         }
-        this.debug(rowtext)
     }
 }//}}}
-
 
 BasicScreen.prototype.canvasDisplay = function(context){
     COL_WIDTH = 8;
@@ -1015,11 +1013,9 @@ BasicScreen.prototype.canvasDisplay = function(context){
 
 
 BasicScreen.prototype.defaultcharset = function(){
-    this.debug("defaultcharset!", arguments);
 }
 
 BasicScreen.prototype.setcharset = function(){
-    this.debug("setcharset!", arguments);
 }
 
 BasicScreen.prototype.eraseinline = function(params){
@@ -1039,47 +1035,38 @@ BasicScreen.prototype.eraseinline = function(params){
         }
         //erase entire line
     }
-    this.debug("eraseinline!", arguments);
 }
  
 BasicScreen.prototype.hvpos = function(){
-    this.debug("hvpos!", arguments);
 }
 
 BasicScreen.prototype.resetmode = function(){
-    this.debug("reset mode!", arguments);
 }
 
 BasicScreen.prototype.savecursor = function(){
-    this.debug("savecursor!", arguments);
 }
 
 BasicScreen.prototype.restorecursor = function(){
-    this.debug("restorecursor!", arguments);
 }
  
 
 BasicScreen.prototype.senddevattrs = function(){
-    this.debug("senddevattrs!", arguments);
 }
  
 
 BasicScreen.prototype.setmode = function(){
-    this.debug("set mode!", arguments);
 }
 
 BasicScreen.prototype.setscrollreg = function(){
-    this.debug("set scroll reg!", arguments);
 }
 
 BasicScreen.prototype.charattrs = function(){
-    console.log("SGR", arguments)
-    this.debug("select graphic rendition!", arguments[0], arguments[1]);
+    //console.log("SGR", arguments)
     if(arguments[0]){
         var colorCode = arguments[0][0];
         switch(colorCode){
             case 0:
-                console.log("resetting color!");
+                //console.log("resetting color!");
                 this.color = undefined;
                 this.bold = false;
                 this.ul = false;
@@ -1112,12 +1099,28 @@ BasicScreen.prototype.charattrs = function(){
     }
 }
 
-BasicScreen.prototype.eraseindisplay = function(){
-    this.debug("erase in display!", arguments);
+BasicScreen.prototype.eraseindisplay = function(params){
+    //0 Erase from the active position to the end of the screen, inclusive (default)
+    //1 Erase from start of the screen to the active position, inclusive
+    //2 Erase all of the display – all lines are erased, changed to single-width, and the cursor does not move.
+    if(!params || params[0] == 0){
+        for(var i=this.cursor.y+1;i<this.rows;i++){
+            this.data[i] = this.defaultLine(this.cols)
+        }
+        this.eraseinline([0])
+    }else if(params[0] == 1){
+        for(var i=0;i<this.cursor.y;i++){
+            this.data[i] = this.defaultLine(this.cols)
+        }
+        this.eraseinline([1])
+    }else if(params[0] == 2){
+        for(var i=0;i<this.rows;i++){
+            this.data[i] = this.defaultLine(this.cols)
+        }
+    }
 }
 
 BasicScreen.prototype.cursorpos = function(params){
-    this.debug("cursor pos!", arguments);
     var row = params[0] - 1;
     var col;
     if (params.length >= 2) { 
@@ -1178,7 +1181,6 @@ BasicScreen.prototype.draw = function(ch){
         this.insertChars(1)
     }
 
-    this.debug("screen drawing",this.cursor.y, this.cursor.x, ch)
     var b = {d:ch, c:this.color}
     if(this.bold) b.bold = true
     this.data[this.cursor.y][this.cursor.x] = b
@@ -1190,8 +1192,14 @@ BasicScreen.prototype.backspace = function(){
 }
 
 BasicScreen.prototype.index = function(){
-    //MOB TODO this needs to handle creating new lines, margins, etc.
-    this.cursordown()
+    //TODO handle scroll regions?
+    if(this.cursor.y == this.rows -1){
+        this.cursor.y = this.rows;
+        this.data.shift()
+        this.data.push(this.defaultLine(this.cols))
+    }else{
+        this.cursordown()
+    }
 }
 
 BasicScreen.prototype.linefeed = function(){
@@ -1301,7 +1309,6 @@ BasicStream.prototype.feed = function(ch){
     }else{
         strtest = ''
     }
-    debug("[STREAM]", "[", this.state, "]", "processing char:", ++this.numchars, ch, strtest );
     switch(this.state){
         case STATES.SKIP:
             this.skipCounter--;
@@ -1310,7 +1317,6 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.NORMAL:
-            debug("normal mode " + ch)
             switch(ch){
                 case SPECIAL_CHARS.NIL:
                     break;
@@ -1334,7 +1340,6 @@ BasicStream.prototype.feed = function(ch){
                     this.state = STATES.ESC;
                     break;
                 default:
-                    debug("Drawing ", ch);
                     this.dispatch("draw", ch)
                     break;
             }
@@ -1437,21 +1442,18 @@ BasicStream.prototype.feed = function(ch){
 
               // ESC = Application Keypad (DECPAM).
               case 61: //'='
-                debug('Serial port requested application keypad.');
                 this.applicationKeypad = true;
                 this.state = STATES.NORMAL;
                 break;
 
               // ESC > Normal Keypad (DECPNM).
               case 62: //'>'
-                debug('Switching back to normal keypad.');
                 this.applicationKeypad = false;
                 this.state = STATES.NORMAL;
                 break;
 
               default:
                 this.state = STATES.NORMAL;
-                debug('Unknown ESC control: ' + ch + '.');
                 break;
             }
             break;
@@ -1469,7 +1471,6 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.OSCIN:
-            debug("OSCIN");
             switch(ch){
                 case 59:
                     this.state = STATES.NORMAL;
@@ -1485,7 +1486,6 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.OSC:
-            debug("OSC", ch)
             if(ch !== 27 && ch !== 7){
                 //just ignore
                 break;
@@ -1511,7 +1511,6 @@ BasicStream.prototype.feed = function(ch){
         case STATES.CSI:
             if (ch === 63 || ch === 62 || ch === 33) {
               this.prefix = ch;
-              debug("prefix is ", ch);
               break;
             }
 
@@ -1535,11 +1534,9 @@ BasicStream.prototype.feed = function(ch){
 
             this.state = STATES.NORMAL;
             var funcname = CSI_FUNCS[ch]
-            debug(funcname)
             if(funcname){
                 this.dispatch(funcname, this.params)
             }else{
-                debug("unknown:", ch)
             }
     }
 }

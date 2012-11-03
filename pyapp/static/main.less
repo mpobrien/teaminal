@@ -1,0 +1,38 @@
+@lightgreen: #CBE86B;
+@blackish: #1C140D;
+
+body{
+    background:url('/static/noise_lines/noise_lines.png');
+    margin:0px;
+    font-family:Georgia;
+}
+
+.navbar{
+  position: fixed;
+  right: 0;
+  left: 0;
+  padding:10px;
+  z-index: 1030;
+  margin-bottom: 0;
+  color:@lightgreen;
+  background-color:@blackish;
+  a{
+      padding-right:10px;
+  }
+  a:visited{
+    text-decoration:none;
+    color:darken(@lightgreen, 30%);
+  }
+  a:link{
+    color:darken(@lightgreen, 30%);
+    text-decoration:none;
+  }
+  a:hover{
+    color:@lightgreen;
+    text-decoration:none;
+  }
+
+  .branding{
+
+  }
+}

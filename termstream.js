@@ -91,7 +91,7 @@ BasicStream.prototype.feed = function(ch){
     }else{
         strtest = ''
     }
-    debug("[STREAM]", "[", this.state, "]", "processing char:", ++this.numchars, ch, strtest );
+    debug("[STREAM]", "[", this.state, "]", "processing char:", ++this.numchars, ch, strtest ); // @debug
     switch(this.state){
         case STATES.SKIP:
             this.skipCounter--;
@@ -100,7 +100,7 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.NORMAL:
-            debug("normal mode " + ch)
+            debug("normal mode " + ch) // @debug
             switch(ch){
                 case SPECIAL_CHARS.NIL:
                     break;
@@ -124,7 +124,7 @@ BasicStream.prototype.feed = function(ch){
                     this.state = STATES.ESC;
                     break;
                 default:
-                    debug("Drawing ", ch);
+                    debug("Drawing ", ch); // @debug
                     this.dispatch("draw", ch)
                     break;
             }
@@ -227,21 +227,21 @@ BasicStream.prototype.feed = function(ch){
 
               // ESC = Application Keypad (DECPAM).
               case 61: //'='
-                debug('Serial port requested application keypad.');
+                debug('Serial port requested application keypad.'); // @debug
                 this.applicationKeypad = true;
                 this.state = STATES.NORMAL;
                 break;
 
               // ESC > Normal Keypad (DECPNM).
               case 62: //'>'
-                debug('Switching back to normal keypad.');
+                debug('Switching back to normal keypad.'); // @debug
                 this.applicationKeypad = false;
                 this.state = STATES.NORMAL;
                 break;
 
               default:
                 this.state = STATES.NORMAL;
-                debug('Unknown ESC control: ' + ch + '.');
+                debug('Unknown ESC control: ' + ch + '.'); // @debug
                 break;
             }
             break;
@@ -259,7 +259,7 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.OSCIN:
-            debug("OSCIN");
+            debug("OSCIN"); // @debug
             switch(ch){
                 case 59:
                     this.state = STATES.NORMAL;
@@ -275,7 +275,7 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.OSC:
-            debug("OSC", ch)
+            debug("OSC", ch) // @debug
             if(ch !== 27 && ch !== 7){
                 //just ignore
                 break;
@@ -301,7 +301,7 @@ BasicStream.prototype.feed = function(ch){
         case STATES.CSI:
             if (ch === 63 || ch === 62 || ch === 33) {
               this.prefix = ch;
-              debug("prefix is ", ch);
+              debug("prefix is ", ch); // @debug
               break;
             }
 
@@ -325,11 +325,11 @@ BasicStream.prototype.feed = function(ch){
 
             this.state = STATES.NORMAL;
             var funcname = CSI_FUNCS[ch]
-            debug(funcname)
+            debug(funcname) // @debug
             if(funcname){
                 this.dispatch(funcname, this.params)
             }else{
-                debug("unknown:", ch)
+                debug("unknown:", ch) // @debug
             }
     }
 }

@@ -1,0 +1,30 @@
+body {
+  background: url('/static/noise_lines/noise_lines.png');
+  margin: 0px;
+  font-family: Georgia;
+}
+.navbar {
+  position: fixed;
+  right: 0;
+  left: 0;
+  padding: 10px;
+  z-index: 1030;
+  margin-bottom: 0;
+  color: #cbe86b;
+  background-color: #1c140d;
+}
+.navbar a {
+  padding-right: 10px;
+}
+.navbar a:visited {
+  text-decoration: none;
+  color: #81a119;
+}
+.navbar a:link {
+  color: #81a119;
+  text-decoration: none;
+}
+.navbar a:hover {
+  color: #cbe86b;
+  text-decoration: none;
+}
