@@ -20,8 +20,9 @@ SessionManager.prototype.bindToIo = function(io){
         });
 
         socket.on("message", function(d){
-            console.log("d", d);
+            console.log("received from client", JSON.stringify(d));
             if(!socket.sid){
+                console.log("finding sid");
                 var msg = JSON.parse(d);
                 socket.sid = msg.sid;
                 var session = self.sessions[msg.sid];
@@ -31,9 +32,8 @@ SessionManager.prototype.bindToIo = function(io){
                 }
                 socket.endpoint = session.host;
                 session.host.webclient = socket;
-            }
-            if(socket.endpoint){
-                //socket.endpoint.write("a");
+            }else if(socket.endpoint){
+                socket.endpoint.write(d);
             }
         });
 

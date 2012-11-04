@@ -157,7 +157,6 @@ BasicScreen.prototype.log = function(){//{{{
             var outchar = this.data[i][j].d || " "
             rowtext += outchar
         }
-        this.debug(rowtext) // @debug
     }
 }//}}}
 
@@ -176,11 +175,9 @@ BasicScreen.prototype.canvasDisplay = function(context){
 
 
 BasicScreen.prototype.defaultcharset = function(){
-    this.debug("defaultcharset!", arguments); //@debug
 }
 
 BasicScreen.prototype.setcharset = function(){
-    this.debug("setcharset!", arguments); //@debug
 }
 
 BasicScreen.prototype.eraseinline = function(params){
@@ -200,42 +197,33 @@ BasicScreen.prototype.eraseinline = function(params){
         }
         //erase entire line
     }
-    this.debug("eraseinline!", arguments); //@debug
 }
  
 BasicScreen.prototype.hvpos = function(){
-    this.debug("hvpos!", arguments); //@debug
 }
 
 BasicScreen.prototype.resetmode = function(){
-    this.debug("reset mode!", arguments); //@debug
 }
 
 BasicScreen.prototype.savecursor = function(){
-    this.debug("savecursor!", arguments); //@debug
 }
 
 BasicScreen.prototype.restorecursor = function(){
-    this.debug("restorecursor!", arguments); //@debug
 }
  
 
 BasicScreen.prototype.senddevattrs = function(){
-    this.debug("senddevattrs!", arguments); //@debug
 }
  
 
 BasicScreen.prototype.setmode = function(){
-    this.debug("set mode!", arguments); //@debug
 }
 
 BasicScreen.prototype.setscrollreg = function(){
-    this.debug("set scroll reg!", arguments); //@debug
 }
 
 BasicScreen.prototype.charattrs = function(){
     //console.log("SGR", arguments)
-    this.debug("select graphic rendition!", arguments[0], arguments[1]); //@debug
     if(arguments[0]){
         var colorCode = arguments[0][0];
         switch(colorCode){
@@ -292,11 +280,9 @@ BasicScreen.prototype.eraseindisplay = function(params){
             this.data[i] = this.defaultLine(this.cols)
         }
     }
-    this.debug("erase in display!", arguments); //@debug
 }
 
 BasicScreen.prototype.cursorpos = function(params){
-    this.debug("cursor pos!", arguments); //@debug
     var row = params[0] - 1;
     var col;
     if (params.length >= 2) { 
@@ -357,7 +343,6 @@ BasicScreen.prototype.draw = function(ch){
         this.insertChars(1)
     }
 
-    this.debug("screen drawing",this.cursor.y, this.cursor.x, ch) //@debug
     var b = {d:ch, c:this.color}
     if(this.bold) b.bold = true
     this.data[this.cursor.y][this.cursor.x] = b

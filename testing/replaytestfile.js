@@ -8,16 +8,28 @@ var BasicStream = require('../termstream').BasicStream
 var BasicScreen = require('../screen').BasicScreen
 var strm = new BasicStream(); 
 var scrn = new BasicScreen(40, 80)
-scrn.debugMode = true
-strm.setDebugMode(true, true)
+//scrn.debugMode = true
+//strm.setDebugMode(true, true)
 strm.attach(scrn)
 
 var filename = process.argv[2]
 var filedata = fs.readFileSync(argv.file, 'utf-8')
 
+var benchRuns = argv.b || 1;
+
 if(argv.r){
-    for(var i=0;i<filedata.length;i++){
-        strm.feed(filedata[i].charCodeAt(0))
+    var start = +new Date()
+    for(var j=0;j<benchRuns;j++){
+        for(var i=0;i<filedata.length;i++){
+            strm.feed(filedata[i].charCodeAt(0))
+        }
+    }
+    var end = +new Date()
+    if(benchRuns>1){
+        console.log(benchRuns, "runs");
+        var timeElapsed = end - start;
+        console.log(timeElapsed, "total time");
+        console.log(timeElapsed / benchRuns, "avg time per run");
     }
 }else{
     var lines = filedata.split("\n");
@@ -26,7 +38,6 @@ if(argv.r){
         var line = lines[i]
         if(line){
             var linestr = JSON.parse(line)
-            console.log("feeding", line);
             for(var j=0;j<linestr.length;j++){
                 strm.feed(linestr[j])
             }
