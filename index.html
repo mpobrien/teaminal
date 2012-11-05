@@ -34,9 +34,9 @@
             socket = io.connect('http://localhost');
             socket.send(JSON.stringify({sid:"abcd"}));
             socket.on("message", function(data){
-                console.log("got", data);
+                //console.log("got", data);
                 var uintarray = Base64Binary.decode(data)
-                console.log(uintarray)
+                //console.log(uintarray)
                 feedAll(strm, uintarray);
                 redraw()
             });
