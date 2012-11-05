@@ -23,9 +23,9 @@ END_ALTERNATE_MODE = set('\x1b[?{0}l'.format(i) for i in ('1049', '47', '1047'))
 ALTERNATE_MODE_FLAGS = tuple(START_ALTERNATE_MODE) + tuple(END_ALTERNATE_MODE)
 
 msg_struct = struct.Struct("hh")
+changing_win = False
 
 def reset_term():
-    print "done. cya..."
     curses.resetty()
 
 def findlast(s, substrs):
@@ -75,12 +75,17 @@ class SocketRelayInterceptor(Interceptor):
             data = data[n:]
 
     def _signal_winch(self, signum, frame):
+        global changing_win
+        changing_win = True;
         Interceptor._signal_winch(self, signum, frame)
         winsize = self.get_size()
+        Interceptor._signal_winch(self, signum, frame)
         rows, cols = winsize[0], winsize[1]
-        self.write_network(winchange_message(rows, cols))
+        #self.write_network(",".join([str(rows), "+",str(cols)]))
+        #self.write_network(winchange_message(rows, cols))
 
     def _copy(self):
+        global changing_win
         assert self.master_fd is not None
         master_fd = self.master_fd
         self.mysocket.setblocking(0)
@@ -89,9 +94,13 @@ class SocketRelayInterceptor(Interceptor):
                 rfds, wfds, xfds = select.select([master_fd, pty.STDIN_FILENO, self.mysocket], [], [])
             except select.error, e:
                 if e[0] == 4:   # Interrupted system call.
-                    print "done"
-                    break;
-                    #continue
+                    if changing_win:
+                        changing_win = False
+                        continue;
+                    else:
+                        print "done"
+                        break;
+                        #continue
 
             if master_fd in rfds:
                 data = os.read(self.master_fd, 1024)
@@ -135,10 +144,10 @@ def main(args):
         ssl_sock = ssl.wrap_socket(s, ca_certs="/etc/ca_certs_file", cert_reqs=ssl.CERT_NONE)
         ssl_sock.connect(('screenfags.com', 8000))
         ssl_sock.write("join " + args[1]);
-        window = curses.initscr()
-        curses.savetty()
+        #window = curses.initscr()
+        #curses.savetty()
         atexit.register(reset_term)
-        curses.noecho()
+        #curses.noecho()
         current_bytes_remaining = None
         currentmsg = StringIO()
         bytesremaining = 0
