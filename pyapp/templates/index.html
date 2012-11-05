@@ -24,19 +24,7 @@
               }
           }
 
-          $(document).keypress(function(e){
-              if(e.keyCode == 13){
-                socket.send('\n');
-              }else if(e.keyCode == 9){
-                socket.send('\t');
-              }else if(e.keyCode == 8){
-                socket.send('\b');
-              }else{
-                socket.send(String.fromCharCode(e.charCode));
-              }
-              console.log("keycode", e);
-              e.preventDefault();
-          });
+              
 
           $(document).ready(function(){
             socket = io.connect('http://localhost:80/');
@@ -48,6 +36,28 @@
                 feedAll(strm, uintarray);
                 redraw()
             });
+
+              $(document).keypress(function(e){
+                  var code = (e.keyCode ? e.keyCode : e.which);
+                  if(code == 13){
+                    socket.send('\n');
+                  }else if(code == 9){
+                    socket.send('\t');
+                  }else if(code == 8){
+                    socket.send('\b');
+                    return false;
+                  }else{
+                    socket.send(String.fromCharCode(e.charCode));
+                  }
+                  console.log("keycode", e);
+                  e.preventDefault();
+               }).keydown(function(e){
+                  var code = (e.keyCode ? e.keyCode : e.which);
+                  if(code == 8){
+                    socket.send('\b');
+                    return false;
+                  }
+               });
 
             canvasElem = $('#mycanvas')[0];
             context = canvasElem.getContext("2d");
