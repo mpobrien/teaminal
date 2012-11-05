@@ -19,6 +19,8 @@ var BOLDCOLORS = [
     '#FFFFFF',//WHITE 
 ]
 
+COL_WIDTH = 7;
+ROW_HEIGHT = 14;
 exports.COLORS = ["black","red","green","yellow","blue","magenta","cyan","white","",""]
 
 
@@ -33,16 +35,28 @@ BrowserScreen = function(screen, context){
 
 BrowserScreen.prototype.clear = function(){
     this.context.fillStyle = this.backgroundColor;
-    this.context.fillRect(0,0,1000,1000);
+    if(this.screen.dirtyAll){
+        this.context.fillRect(0,0,1000,1000);
+        return;
+    }
+    for(var i in this.screen.dirty){
+        this.context.fillRect(0,ROW_HEIGHT * i,1000,ROW_HEIGHT);
+    }
 }
 
 BrowserScreen.prototype.canvasDisplay = function(){
     //this.context.font = '12px monospace';
-    COL_WIDTH = 7;
-    ROW_HEIGHT = 14;
     this.context.fillStyle = this.foregroundColor;
+    this.context.textBaseline = 'bottom';
     var curColor = undefined;
+    console.log(this.screen.dirtyAll, "dirties",this.screen.dirty)
     for(var i=0;i<this.screen.rows;i++){
+        if( !this.screen.dirty[i] && !this.screen.dirtyAll){
+            continue;
+        }else{
+            console.log("redrawing", i);
+        }
+        //this.screen.dirty[i] = 0;
         for(var j=0;j<this.screen.cols;j++){
             var ch = this.screen.data[i][j]
             var outchar = String.fromCharCode(ch.d)
@@ -66,6 +80,8 @@ BrowserScreen.prototype.canvasDisplay = function(){
             }
         }
     }
+    this.screen.dirty = {};
+    this.screen.dirtyAll = false;
 }
 exports.BrowserScreen = BrowserScreen
 
