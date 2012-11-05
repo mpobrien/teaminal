@@ -55,6 +55,8 @@ repeatprecchar
 
 function BasicScreen(rows, columns){
     this.rows = rows;
+    this.dirty = {};
+    this.dirtyAll = false;
     this.cols = columns;
     this.cursor = {x:0, y:0}
     this.margins = {top:0, bottom: rows-1}
@@ -161,7 +163,7 @@ BasicScreen.prototype.log = function(){//{{{
     }
 }//}}}
 
-BasicScreen.prototype.canvasDisplay = function(context){
+BasicScreen.prototype.canvasDisplay = function(context){//{{{
     COL_WIDTH = 8;
     ROW_HEIGHT = 16;
     for(var i=0;i<this.rows;i++){
@@ -172,8 +174,7 @@ BasicScreen.prototype.canvasDisplay = function(context){
             }
         }
     }
-}
-
+}//}}}
 
 BasicScreen.prototype.defaultcharset = function(){
     this.debug("defaultcharset!", arguments); //@debug
@@ -188,16 +189,19 @@ BasicScreen.prototype.eraseinline = function(params){
         for(var i=this.cursor.x;i<this.cols;i++){
             this.data[this.cursor.y][i] = {}
         }
+        this.dirty[this.cursor.y] = 1
         //erase from cursor to EOL
     }else if(params[0] == 1){
         for(var i=0;i<=this.cursor.x;i++){
             this.data[this.cursor.y][i] = {}
         }
+        this.dirty[this.cursor.y] = 1
         //erase from beginning of line to cursor inclusive
     }else if(params[0] == 2){
         for(var i=0;i<this.cols;i++){
             this.data[this.cursor.y][i] = {}
         }
+        this.dirty[this.cursor.y] = 1
         //erase entire line
     }
     this.debug("eraseinline!", arguments); //@debug
@@ -280,17 +284,20 @@ BasicScreen.prototype.eraseindisplay = function(params){
     if(!params || params[0] == 0){
         for(var i=this.cursor.y+1;i<this.rows;i++){
             this.data[i] = this.defaultLine(this.cols)
+            this.dirty[i] = 1
         }
         this.eraseinline([0])
     }else if(params[0] == 1){
         for(var i=0;i<this.cursor.y;i++){
             this.data[i] = this.defaultLine(this.cols)
+            this.dirty[i] = 1
         }
         this.eraseinline([1])
     }else if(params[0] == 2){
         for(var i=0;i<this.rows;i++){
             this.data[i] = this.defaultLine(this.cols)
         }
+        this.dirtyAll = true;
     }
     this.debug("erase in display!", arguments); //@debug
 }
@@ -362,6 +369,7 @@ BasicScreen.prototype.draw = function(ch){
     if(this.bold) b.bold = true
     this.data[this.cursor.y][this.cursor.x] = b
     this.cursor.x += 1
+    this.dirty[this.cursor.y] = 1
 }
 
 BasicScreen.prototype.backspace = function(){
@@ -374,6 +382,7 @@ BasicScreen.prototype.index = function(){
         this.cursor.y = this.rows - 1;
         this.data.shift()
         this.data.push(this.defaultLine(this.cols))
+        this.dirtyAll = true;
     }else{
         this.cursordown()
     }
