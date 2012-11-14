@@ -50,6 +50,7 @@ class Interceptor(object):
         os.close(master_fd)
         self.master_fd = None
         signal.signal(signal.SIGWINCH, old_handler)
+        self._set_pty_size()
 
     def _init_fd(self):
         '''

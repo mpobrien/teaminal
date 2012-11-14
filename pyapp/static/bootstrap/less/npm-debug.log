@@ -1,0 +1,48 @@
+0 info it worked if it ends with ok
+1 verbose cli [ 'node', '/usr/local/bin/npm', 'install', 'lessc' ]
+2 info using npm@1.1.59
+3 info using node@v0.8.8
+4 verbose node symlink /Users/mike/homebrew/bin/node
+5 verbose read json /Users/mike/projects/teaminal/package.json
+6 warn package.json teaminal@1.0.0 No README.md file found!
+7 verbose read json /Users/mike/projects/teaminal/node_modules/brunch/package.json
+8 verbose read json /Users/mike/projects/teaminal/node_modules/express/package.json
+9 verbose read json /Users/mike/projects/teaminal/node_modules/profile/package.json
+10 verbose from cache /Users/mike/projects/teaminal/package.json
+11 verbose readDependencies using package.json deps
+12 verbose cache add [ 'lessc', null ]
+13 silly cache add name=undefined spec="lessc" args=["lessc",null]
+14 verbose parsed url { pathname: 'lessc', path: 'lessc', href: 'lessc' }
+15 silly lockFile 8b3a335c-lessc lessc
+16 verbose lock lessc /Users/mike/.npm/8b3a335c-lessc.lock
+17 silly lockFile 8b3a335c-lessc lessc
+18 verbose addNamed [ 'lessc', '' ]
+19 verbose addNamed [ null, '' ]
+20 silly lockFile a47c36bc-lessc lessc@
+21 verbose lock lessc@ /Users/mike/.npm/a47c36bc-lessc.lock
+22 silly addNameRange { name: 'lessc', range: '', hasData: false }
+23 verbose url raw lessc
+24 verbose url resolving [ 'https://registry.npmjs.org/', './lessc' ]
+25 verbose url resolved https://registry.npmjs.org/lessc
+26 info retry registry request attempt 1 at 00:45:45
+27 http GET https://registry.npmjs.org/lessc
+28 http 404 https://registry.npmjs.org/lessc
+29 silly registry.get cb [ 404,
+29 silly registry.get   { server: 'CouchDB/1.2.0 (Erlang OTP/R15B)',
+29 silly registry.get     date: 'Tue, 13 Nov 2012 05:45:22 GMT',
+29 silly registry.get     'content-type': 'application/json',
+29 silly registry.get     'content-length': '52',
+29 silly registry.get     'cache-control': 'must-revalidate' } ]
+30 silly lockFile a47c36bc-lessc lessc@
+31 error 404 'lessc' is not in the npm registry.
+31 error 404 You should bug the author to publish it
+31 error 404
+31 error 404 Note that you can also install from a
+31 error 404 tarball, folder, or http url, or git url.
+32 error System Darwin 12.2.0
+33 error command "node" "/usr/local/bin/npm" "install" "lessc"
+34 error cwd /Users/mike/projects/teaminal/pyapp/static/bootstrap/less
+35 error node -v v0.8.8
+36 error npm -v 1.1.59
+37 error code E404
+38 verbose exit [ 1, true ]

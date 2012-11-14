@@ -5,9 +5,6 @@ import sys
 def create_app(configname):
     app = Flask(__name__)
     app.config.from_object(configname)
-    if app.debug:
-        from flaskext.lesscss import lesscss
-        lesscss(app)
     return app
 
 if len(sys.argv) >= 2:

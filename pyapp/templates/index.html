@@ -1,119 +1,117 @@
+{% extends "base.html" %}
 
-<html>
-    <link href="/static/main.css" rel="stylesheet" />
-    <body>
-    </body>
-</html>
+{% block head %}
+    {{ super() }}
+    <script src="/static/socket.io.js"></script>
+    <script src="/static/teaminal.js"></script>
+    <script>
+      var screen, strm, br_screen;
+      canvasElem = $('#mycanvas')[0]
+      var context;
+      Base64Binary = require('./b64binary').Base64Binary
 
-
-<html>
-    <head>
-        <!--link href='http://fonts.googleapis.com/css?family=Inconsolata:400,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'-->
-        <script src="/static/socket.io.js"></script>
-        <script src="/static/teaminal.js"></script>
-        <script src="/static/jquery.js"></script>
-        <script>
-          var screen, strm, br_screen;
-          canvasElem = $('#mycanvas')[0]
-          var context;
-          Base64Binary = require('./b64binary').Base64Binary
-
-          function feedAll(stream, data){
-              for(var i=0;i<data.length;i++){
-                  stream.feed(data[i])
-              }
+      function feedAll(stream, data){
+          for(var i=0;i<data.length;i++){
+              stream.feed(data[i])
           }
+      }
 
-              
+          
 
-          $(document).ready(function(){
-            socket = io.connect('http://localhost:80/');
-            socket.send(JSON.stringify({sid:"abcd"}));
-            socket.on("message", function(data){
-                console.log("got", data);
-                var uintarray = Base64Binary.decode(data)
-                console.log(uintarray)
-                feedAll(strm, uintarray);
-                redraw()
-            });
+      $(document).ready(function(){
+        $('#settings').click(function(){
+            $('#myModal').modal()
+        });
 
-              $(document).keypress(function(e){
-                  var code = (e.keyCode ? e.keyCode : e.which);
-                  if(code == 13){
-                    socket.send('\n');
-                  }else if(code == 9){
-                    socket.send('\t');
-                  }else if(code == 8){
-                    socket.send('\b');
-                    return false;
-                  }else{
-                    socket.send(String.fromCharCode(e.charCode));
-                  }
-                  console.log("keycode", e);
-                  e.preventDefault();
-               }).keydown(function(e){
-                  var code = (e.keyCode ? e.keyCode : e.which);
-                  if(code == 8){
-                    socket.send('\b');
-                    return false;
-                  }
-               });
 
-            canvasElem = $('#mycanvas')[0];
-            context = canvasElem.getContext("2d");
-            context.fillStyle = '#fff';
-            context.fillRect(0,0,$('#mycanvas').attr('height'),$('#mycanvas').attr('width'));
-            context.fillStyle = '#fff'
-            //context.font = 'bold 12px monospace';
-            context.lineWidth = 2;
-            context.fillText("0123456789012345678901234567890123", 0, 16);
-            context.fillText("0123456789012345678901234567890123", 0, 32);
-            setupTerminal()
-            context.fillStyle = '#000'
+        socket = io.connect('http://localhost:80/');
+        socket.send(JSON.stringify({sid:"abcd"}));
+        socket.on("message", function(data){
+            console.log("got", data);
+            var uintarray = Base64Binary.decode(data)
+            console.log(uintarray)
+            feedAll(strm, uintarray);
             redraw()
+        });
 
-            $('#styleinput, #fgcolor, #bgcolor').change(function(){
-                redraw()
-            })
-          });
+          $(document).keypress(function(e){
+              var code = (e.keyCode ? e.keyCode : e.which);
+              if(code == 13){
+                socket.send('\n');
+              }else if(code == 9){
+                socket.send('\t');
+              }else if(code == 8){
+                socket.send('\b');
+                return false;
+              }else{
+                socket.send(String.fromCharCode(e.charCode));
+              }
+              console.log("keycode", e);
+              e.preventDefault();
+           }).keydown(function(e){
+              var code = (e.keyCode ? e.keyCode : e.which);
+              if(code == 8){
+                socket.send('\b');
+                return false;
+              }
+           });
 
-          function setupTerminal(){
-              var BasicStream = require('./termstream').BasicStream
-              var BasicScreen = require('./screen').BasicScreen
-              var BrowserScreen = require('./browserscreen').BrowserScreen
-              strm = new BasicStream(); 
-              screen = new BasicScreen(40, 80)
-              br_screen = new BrowserScreen(screen, context);
-              //strm.setDebugMode(true);
-              strm.attach(screen)
-              //screen.debugMode = true;
+        canvasElem = $('#mycanvas')[0];
+        context = canvasElem.getContext("2d");
+        context.fillStyle = '#fff';
+        context.fillRect(0,0,$('#mycanvas').attr('height'),$('#mycanvas').attr('width'));
+        context.fillStyle = '#fff'
+        //context.font = 'bold 12px monospace';
+        context.lineWidth = 2;
+        context.fillText("0123456789012345678901234567890123", 0, 16);
+        context.fillText("0123456789012345678901234567890123", 0, 32);
+        setupTerminal()
+        context.fillStyle = '#000'
+        redraw()
 
-              //feedAll(strm, vimtest);
-          }
+        $('#styleinput, #fgcolor, #bgcolor').change(function(){
+            redraw()
+        })
+      });
 
-          function redraw(){
-            br_screen.clear()
-            //br_screen.backgroundColor = $('#bgcolor').val()
-            //br_screen.foregroundColor = $('#fgcolor').val()
-            context = canvasElem.getContext("2d");
-            //context.font = $('#styleinput').val()
-            br_screen.canvasDisplay(context)
-          }
-          var vimtest = "\u001b[1;32mmike@mikes-MacBook-Pro\u001b[0;31m \u001b[01;34m~\u001b[1;32m\u001b[0;31m \u001b[0;34m$\u001b[00m vim\r\n\u001b7\u001b[?47h\u001b[?1h\u001b=\u001b[1;30r\u001b[m\u001b[38;5;188m\u001b[48;5;232m\u001b[H\u001b[2J\u001b[>c\u001b[1;1H\u001b[38;5;145m\u001b[48;5;16m   \u001b[m\u001b[38;5;188m\u001b[48;5;232m\u001b[38;5;59m\u001b[48;5;232m  1 \u001b[m\u001b[38;5;188m\u001b[48;5;232m\u001b[48;5;233m                                                                         \u001b[m\u001b[38;5;188m\u001b[48;5;232m\u001b[2;1H\u001b[38;5;145m\u001b[48;5;16m   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \r\n   \u001b[m\u001b[38;5;188m\u001b[48;5;232m\u001b[2;4H\u001b[38;5;243m\u001b[48;5;232m~                                                                            \u001b[3;4H~                                                                            \u001b[4;4H~                                                                            \u001b[5;4H~                                                                            \u001b[6;4H~                                                                            \u001b[7;4H~                                                                            \u001b[8;4H~                                                                            \u001b[9;4H~                                                                            \u001b[10;4H~                                                                            \u001b[11;4H~                                                                            \u001b[12;4H~                                                                            \u001b[13;4H~                                                                            \u001b[14;4H~                                                                            \u001b[15;4H~                                                                            \u001b[16;4H~                                                                            \u001b[17;4H~                                                                            \u001b[18;4H~                                                                            \u001b[19;4H~                                                                            \u001b[20;4H~                                                                            \u001b[21;4H~                                                                            \u001b[22;4H~                                                                            \u001b[23;4H~                                                                            \u001b[24;4H~                                                                            \u001b[25;4H~                                                                            \u001b[26;4H~                                                                            \u001b[27;4H~                                                                            \u001b[28;4H~                                                                            \u001b[29;4H~                                                                            \u001b[m\u001b[38;5;188m\u001b[48;5;232m\u001b[30;63H0,0-1\u001b[9CAll\u001b[10;32HVIM - Vi IMproved\u001b[12;35Hversion 7.3\u001b[13;29Hby Bram Moolenaar et al.\u001b[14;19HVim is open source and freely distributable\u001b[16;26HBecome a registered Vim user!\u001b[17;18Htype  :help register\u001b[38;5;243m\u001b[48;5;235m<Enter>\u001b[m\u001b[38;5;188m\u001b[48;5;232m   for information \u001b[19;18Htype  :q\u001b[38;5;243m\u001b[48;5;235m<Enter>\u001b[m\u001b[38;5;188m\u001b[48;5;232m               to exit         \u001b[20;18Htype  :help\u001b[38;5;243m\u001b[48;5;235m<Enter>\u001b[m\u001b[38;5;188m\u001b[48;5;232m  or  \u001b[38;5;243m\u001b[48;5;235m<F1>\u001b[m\u001b[38;5;188m\u001b[48;5;232m  for on-line help\u001b[21;18Htype  :help version7\u001b[38;5;243m\u001b[48;5;235m<Enter>\u001b[m\u001b[38;5;188m\u001b[48;5;232m   for version info\u001b[1;8H\u001b[30;63H\u001b[K\u001b[30;1H:q\r\u001b[30;1H\u001b[K\u001b[30;1H\u001b[?1l\u001b>\u001b[2J\u001b[?47l\u001b8\u001b[1;32mmike@mikes-MacBook-Pro\u001b[0;31m \u001b[01;34m~\u001b[1;32m\u001b[0;31m \u001b[0;34m$\u001b[00m exit\r\n"
+      function setupTerminal(){
+          var BasicStream = require('./termstream').BasicStream
+          var BasicScreen = require('./screen').BasicScreen
+          var BrowserScreen = require('./browserscreen').BrowserScreen
+          strm = new BasicStream(); 
+          screen = new BasicScreen(40, 80)
+          br_screen = new BrowserScreen(screen, context);
+          //strm.setDebugMode(true);
+          strm.attach(screen)
+          //screen.debugMode = true;
 
-        </script>
-    </head>
+          //feedAll(strm, vimtest);
+      }
 
-    <body>
-        <div class="navbar navbar-fixed-top">
-            <!--a href="/" class="branding">Teaminal</a-->
-            <a href="#">Settings</a>
-        </div>
-        <div class="content">
-            <canvas id="mycanvas" width="1000" height="600">
-            </canvas>
-        </div>
-    </body>
+      function redraw(){
+        br_screen.clear()
+        //br_screen.backgroundColor = $('#bgcolor').val()
+        //br_screen.foregroundColor = $('#fgcolor').val()
+        context = canvasElem.getContext("2d");
+        //context.font = $('#styleinput').val()
+        br_screen.canvasDisplay(context)
+      }
+
+    </script>
+{% endblock %}
 
 
-</html>
+{% block navbar %}
+    {{ super() }}
+    <!--a href="/" class="branding">Teaminal</a-->
+    <a href="#" id="settings">Settings</a>
+{% endblock %}
+
+{% block content %}
+    <canvas id="mycanvas" width="1000" height="600">
+    </canvas>
+
+{% include 'fontsettings_modal.html' %}
+{% endblock %}
+
+

@@ -1,7 +1,13 @@
-for file in screen.js termstream.js browserscreen.js b64binary.js
+HERE="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+for file in $HERE/screen.js $HERE/termstream.js $HERE/browserscreen.js $HERE/b64binary.js
 do
-    sed '/\@debug/d' ./$file > ./build/$file
+    justfile=$(basename $file)
+    sed '/\@debug/d' $file > $HERE/build/$justfile
 done
 
-browserify ./build/screen.js ./build/termstream.js ./build/browserscreen.js ./build/b64binary.js > ./build/teaminal.js 
-cp ./build/teaminal.js ./pyapp/static/teaminal.js
+browserify $HERE/build/screen.js $HERE/build/termstream.js $HERE/build/browserscreen.js $HERE/build/b64binary.js > $HERE/build/teaminal.js 
+cp $HERE/build/teaminal.js $HERE/pyapp/static/teaminal.js
+lessc -x --yui-compress $HERE/pyapp/static/bootstrap/less/bootstrap.less $HERE/pyapp/static/bootstrap/css/bootstrap.css
+lessc -x --yui-compress $HERE/pyapp/static/main.less $HERE/pyapp/static/main.css
+

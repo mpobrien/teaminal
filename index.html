@@ -16,18 +16,26 @@
               }
           }
 
+          $(document).keydown(function(e){
+              console.log(e);
+              return false;
+          });
+
           $(document).keypress(function(e){
-              if(e.keyCode == 13){
+              var code = (e.keyCode ? e.keyCode : e.which);
+              if(code == 13){
                 socket.send('\n');
-              }else if(e.keyCode == 9){
+              }else if(code == 9){
                 socket.send('\t');
-              }else if(e.keyCode == 8){
+              }else if(code == 8){
                 socket.send('\b');
+                Event.stop(e);
+                e.returnValue = false;
               }else{
                 socket.send(String.fromCharCode(e.charCode));
               }
-              console.log("keycode", e);
               e.preventDefault();
+              return false;
           });
 
           $(document).ready(function(){
