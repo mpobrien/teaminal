@@ -2,6 +2,7 @@
 
 {% block head %}
     {{ super() }}
+    <script src="/static/js/gui.js"></script>
     <script src="/static/socket.io.js"></script>
     <script src="/static/teaminal.js"></script>
     <script>
@@ -16,29 +17,22 @@
           }
       }
 
-          
-
       $(document).ready(function(){
-        $('#settings').click(function(){
-            $('#myModal').modal()
-        });
-
-
         socket = io.connect('http://localhost:80/');
         socket.send(JSON.stringify({sid:"abcd"}));
         socket.on("message", function(data){
-            console.log("got", data);
             var uintarray = Base64Binary.decode(data)
-            console.log(uintarray)
             feedAll(strm, uintarray);
             redraw()
         });
 
           $(document).keypress(function(e){
               var code = (e.keyCode ? e.keyCode : e.which);
+              console.log(code);
               if(code == 13){
                 socket.send('\n');
               }else if(code == 9){
+                console.log("tab press");
                 socket.send('\t');
               }else if(code == 8){
                 socket.send('\b');
@@ -52,6 +46,15 @@
               var code = (e.keyCode ? e.keyCode : e.which);
               if(code == 8){
                 socket.send('\b');
+                return false;
+              }
+              if(code == 9){
+                console.log("tab down");
+                socket.send('\t');
+                return false;
+              }
+              if(code == 27){
+                socket.send('\x1b');
                 return false;
               }
            });
@@ -69,9 +72,6 @@
         context.fillStyle = '#000'
         redraw()
 
-        $('#styleinput, #fgcolor, #bgcolor').change(function(){
-            redraw()
-        })
       });
 
       function setupTerminal(){
@@ -81,19 +81,12 @@
           strm = new BasicStream(); 
           screen = new BasicScreen(40, 80)
           br_screen = new BrowserScreen(screen, context);
-          //strm.setDebugMode(true);
           strm.attach(screen)
-          //screen.debugMode = true;
-
-          //feedAll(strm, vimtest);
       }
 
       function redraw(){
         br_screen.clear()
-        //br_screen.backgroundColor = $('#bgcolor').val()
-        //br_screen.foregroundColor = $('#fgcolor').val()
         context = canvasElem.getContext("2d");
-        //context.font = $('#styleinput').val()
         br_screen.canvasDisplay(context)
       }
 
