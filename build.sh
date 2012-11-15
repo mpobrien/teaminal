@@ -1,6 +1,6 @@
 HERE="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-for file in $HERE/screen.js $HERE/termstream.js $HERE/browserscreen.js $HERE/b64binary.js
+for file in $HERE/lib/screen.js $HERE/lib/termstream.js $HERE/lib/browserscreen.js $HERE/lib/b64binary.js
 do
     justfile=$(basename $file)
     sed '/\@debug/d' $file > $HERE/build/$justfile
