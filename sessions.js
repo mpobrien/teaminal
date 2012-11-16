@@ -16,7 +16,7 @@ SessionManager.prototype.bindToIo = function(io){
             var session = self.sessions[d.sid];
             if(!session) return;
             socket.endpoint = session.host;
-            session.host.webclient = socket;
+            session.host.webclient.push(socket);
         });
 
         socket.on("message", function(d){
@@ -31,7 +31,7 @@ SessionManager.prototype.bindToIo = function(io){
                     return;
                 }
                 socket.endpoint = session.host;
-                session.host.webclient = socket;
+                session.host.webclient.push(socket);
             }else if(socket.endpoint){
                 socket.endpoint.write(d);
             }
@@ -50,10 +50,13 @@ SessionManager.prototype.serveTcp = function(){
                 c.endpoint.write(data);
             }else if(c.webclient){
                 // TODO base 64 encode this stuff?
-                c.webclient.send(data.toString("base64"));//.toString("utf-8"));
+                for(var i=0;i<c.webclient.length;i++){
+                    c.webclient[i].send(data.toString("base64"));//.toString("utf-8"));
+                }
             }else{
                 if(data.toString("utf-8") == 'createsession'){
                     c.session =  "abcd"//randomString(SESSION_ID_SIZE);
+                    c.webclient = []
                     self.sessions[c.session] = {host:c, state:READY}
                     c.write(c.session);
                 }else{
