@@ -18,7 +18,11 @@
       }
 
       $(document).ready(function(){
-        socket = io.connect('http://localhost:80/');
+        {% if config.DEV %}
+            socket = io.connect('http://dev.teaminal.net:80/');
+        {% else %}
+            socket = io.connect('http://teaminal.net:80/');
+        {% endif %}
         socket.send(JSON.stringify({sid:"abcd"}));
         socket.on("message", function(data){
             var uintarray = Base64Binary.decode(data)
