@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 import sys
+import os
 
 
 def create_app(configname):
@@ -17,6 +18,11 @@ else:
 def index():
     return render_template("index.html");
 
+@app.route("/dev")
+def dev():
+    directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static', 'testfiles'))
+    files = os.listdir(directory)
+    return render_template("test.html", files=files);
 
 if __name__ == "__main__":
     app.run()
