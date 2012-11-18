@@ -1,114 +1,58 @@
-{% extends "base.html" %}
-
+{% extends "shellbase.html" %}
 {% block head %}
     {{ super() }}
-    <script src="/static/js/gui.js"></script>
-    <script src="/static/socket.io.js"></script>
-    <script src="/static/teaminal.js"></script>
+
     <script>
-      var screen, strm, br_screen;
-      canvasElem = $('#mycanvas')[0]
-      var context;
-      Base64Binary = require('./b64binary').Base64Binary
-
-      function feedAll(stream, data){
-          for(var i=0;i<data.length;i++){
-              stream.feed(data[i])
-          }
-      }
-
+      {% if config.DEV %}
+          var websock_url = 'http://dev.teaminal.net:80/';
+      {% else %}
+          var websock_url = 'http://teaminal.net:80/';
+      {% endif %}
       $(document).ready(function(){
-        {% if config.DEV %}
-            socket = io.connect('http://dev.teaminal.net:80/');
-        {% else %}
-            socket = io.connect('http://teaminal.net:80/');
-        {% endif %}
+        socket = io.connect(websock_url);
         socket.send(JSON.stringify({sid:"abcd"}));
         socket.on("message", function(data){
             var uintarray = Base64Binary.decode(data)
             feedAll(strm, uintarray);
-            redraw()
+            br_screen.clear()
+            br_screen.canvasDisplay()
         });
 
-          $(document).keypress(function(e){
-              var code = (e.keyCode ? e.keyCode : e.which);
-              console.log(code);
-              if(code == 13){
-                socket.send('\n');
-              }else if(code == 9){
-                console.log("tab press");
-                socket.send('\t');
-              }else if(code == 8){
-                socket.send('\b');
-                return false;
-              }else{
-                socket.send(String.fromCharCode(e.charCode));
-              }
-              console.log("keycode", e);
-              e.preventDefault();
-           }).keydown(function(e){
-              var code = (e.keyCode ? e.keyCode : e.which);
-              if(code == 8){
-                socket.send('\b');
-                return false;
-              }
-              if(code == 9){
-                console.log("tab down");
-                socket.send('\t');
-                return false;
-              }
-              if(code == 27){
-                socket.send('\x1b');
-                return false;
-              }
-           });
-
-        canvasElem = $('#mycanvas')[0];
-        context = canvasElem.getContext("2d");
-        context.fillStyle = '#fff';
-        context.fillRect(0,0,$('#mycanvas').attr('height'),$('#mycanvas').attr('width'));
-        context.fillStyle = '#fff'
-        //context.font = 'bold 12px monospace';
-        context.lineWidth = 2;
-        context.fillText("0123456789012345678901234567890123", 0, 16);
-        context.fillText("0123456789012345678901234567890123", 0, 32);
-        setupTerminal()
-        context.fillStyle = '#000'
-        redraw()
+        $(document).keypress(function(e){
+            var code = (e.keyCode ? e.keyCode : e.which);
+            console.log(code);
+            if(code == 13){
+              socket.send('\n');
+            }else if(code == 9){
+              console.log("tab press");
+              socket.send('\t');
+            }else if(code == 8){
+              socket.send('\b');
+              return false;
+            }else{
+              socket.send(String.fromCharCode(e.charCode));
+            }
+            console.log("keycode", e);
+            e.preventDefault();
+         }).keydown(function(e){
+            var code = (e.keyCode ? e.keyCode : e.which);
+            if(code == 8){
+              socket.send('\b');
+              return false;
+            }
+            if(code == 9){
+              console.log("tab down");
+              socket.send('\t');
+              return false;
+            }
+            if(code == 27){
+              socket.send('\x1b');
+              return false;
+            }
+         });
 
       });
 
-      function setupTerminal(){
-          var BasicStream = require('./termstream').BasicStream
-          var BasicScreen = require('./screen').BasicScreen
-          var BrowserScreen = require('./browserscreen').BrowserScreen
-          strm = new BasicStream(); 
-          screen = new BasicScreen(40, 80)
-          br_screen = new BrowserScreen(screen, context);
-          strm.attach(screen)
-      }
-
-      function redraw(){
-        br_screen.clear()
-        context = canvasElem.getContext("2d");
-        br_screen.canvasDisplay(context)
-      }
-
     </script>
 {% endblock %}
-
-
-{% block navbar %}
-    {{ super() }}
-    <!--a href="/" class="branding">Teaminal</a-->
-    <a href="#" id="settings">Settings</a>
-{% endblock %}
-
-{% block content %}
-    <canvas id="mycanvas" width="1000" height="600">
-    </canvas>
-
-{% include 'fontsettings_modal.html' %}
-{% endblock %}
-
 
