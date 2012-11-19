@@ -1,9 +1,10 @@
 HERE="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+NODEBUG=0
 
 while getopts d opt
 do
    case "$opt" in
-      d) NODEBUG=true;;
+      d) NODEBUG=1;;
    esac
 done
 
@@ -12,9 +13,13 @@ echo "$NODEBUG"
 for file in $HERE/lib/screen.js $HERE/lib/termstream.js $HERE/lib/browserscreen.js $HERE/lib/b64binary.js
 do
     justfile=$(basename $file)
-    if [ $NODEBUG ]
-
-        then sed '/\@debug/d' $file > $HERE/build/$justfile
+    if [ $NODEBUG -eq 1 ]
+        then
+            sed '/\@debug/d' $file > $HERE/build/$justfile
+            echo "sedding"
+        else
+            cp $file $HERE/build/$justfile
+            echo "copying"
     fi
 done
 
