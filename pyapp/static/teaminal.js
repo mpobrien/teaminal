@@ -997,6 +997,7 @@ BasicScreen.prototype.log = function(){//{{{
             var outchar = this.data[i][j].d || " "
             rowtext += outchar
         }
+        this.debug(rowtext) // @debug
     }
 }//}}}
 
@@ -1014,9 +1015,11 @@ BasicScreen.prototype.canvasDisplay = function(context){//{{{
 }//}}}
 
 BasicScreen.prototype.defaultcharset = function(){
+    this.debug("defaultcharset!", arguments); //@debug
 }
 
 BasicScreen.prototype.setcharset = function(){
+    this.debug("setcharset!", arguments); //@debug
 }
 
 BasicScreen.prototype.eraseinline = function(params){
@@ -1039,33 +1042,42 @@ BasicScreen.prototype.eraseinline = function(params){
         this.dirty[this.cursor.y] = 1
         //erase entire line
     }
+    this.debug("eraseinline!", arguments); //@debug
 }
  
 BasicScreen.prototype.hvpos = function(){
+    this.debug("hvpos!", arguments); //@debug
 }
 
 BasicScreen.prototype.resetmode = function(){
+    this.debug("reset mode!", arguments); //@debug
 }
 
 BasicScreen.prototype.savecursor = function(){
+    this.debug("savecursor!", arguments); //@debug
 }
 
 BasicScreen.prototype.restorecursor = function(){
+    this.debug("restorecursor!", arguments); //@debug
 }
  
 
 BasicScreen.prototype.senddevattrs = function(){
+    this.debug("senddevattrs!", arguments); //@debug
 }
  
 
 BasicScreen.prototype.setmode = function(){
+    this.debug("set mode!", arguments); //@debug
 }
 
 BasicScreen.prototype.setscrollreg = function(){
+    this.debug("set scroll reg!", arguments); //@debug
 }
 
 BasicScreen.prototype.charattrs = function(){
     //console.log("SGR", arguments)
+    this.debug("select graphic rendition!", arguments[0], arguments[1]); //@debug
     if(arguments[0]){
         var colorCode = arguments[0][0];
         switch(colorCode){
@@ -1125,9 +1137,11 @@ BasicScreen.prototype.eraseindisplay = function(params){
         }
         this.dirtyAll = true;
     }
+    this.debug("erase in display!", arguments); //@debug
 }
 
 BasicScreen.prototype.cursorpos = function(params){
+    this.debug("cursor pos!", arguments); //@debug
     var row = params[0] - 1;
     var col;
     if (params.length >= 2) { 
@@ -1188,6 +1202,7 @@ BasicScreen.prototype.draw = function(ch){
         this.insertChars(1)
     }
 
+    //this.debug("screen drawing",this.cursor.y, this.cursor.x, ch) //@debug
     var b = {d:ch, c:this.color}
     if(this.bold) b.bold = true
     this.data[this.cursor.y][this.cursor.x] = b
@@ -1318,6 +1333,7 @@ BasicStream.prototype.feed = function(ch){
     }else{
         strtest = ''
     }
+    //debug("[STREAM]", "[", this.state, "]", "processing char:", ++this.numchars, ch, strtest ); // @debug
     switch(this.state){
         case STATES.SKIP:
             this.skipCounter--;
@@ -1326,6 +1342,7 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.NORMAL:
+            //debug("normal mode " + ch) // @debug
             switch(ch){
                 case SPECIAL_CHARS.NIL:
                     break;
@@ -1334,12 +1351,15 @@ BasicStream.prototype.feed = function(ch){
                 case SPECIAL_CHARS.LF:
                 case SPECIAL_CHARS.VT:
                 case SPECIAL_CHARS.FF:
+                    //debug("linefeed.")// @debug
                     this.dispatch("linefeed");
                     break;
                 case SPECIAL_CHARS.CR:
+                    //debug("carriage return.")// @debug
                     this.dispatch("carriagereturn");
                     break;
                 case SPECIAL_CHARS.BACKSPACE:
+                    debug("backspace.")// @debug
                     this.dispatch("backspace");
                     break;
                 case SPECIAL_CHARS.TAB:
@@ -1349,6 +1369,7 @@ BasicStream.prototype.feed = function(ch){
                     this.state = STATES.ESC;
                     break;
                 default:
+                    //debug("Drawing ", ch); // @debug
                     this.dispatch("draw", ch)
                     break;
             }
@@ -1451,18 +1472,21 @@ BasicStream.prototype.feed = function(ch){
 
               // ESC = Application Keypad (DECPAM).
               case 61: //'='
+                debug('Serial port requested application keypad.'); // @debug
                 this.applicationKeypad = true;
                 this.state = STATES.NORMAL;
                 break;
 
               // ESC > Normal Keypad (DECPNM).
               case 62: //'>'
+                debug('Switching back to normal keypad.'); // @debug
                 this.applicationKeypad = false;
                 this.state = STATES.NORMAL;
                 break;
 
               default:
                 this.state = STATES.NORMAL;
+                debug('Unknown ESC control: ' + ch + '.'); // @debug
                 break;
             }
             break;
@@ -1480,6 +1504,7 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.OSCIN:
+            debug("OSCIN"); // @debug
             switch(ch){
                 case 59:
                     this.state = STATES.NORMAL;
@@ -1495,6 +1520,7 @@ BasicStream.prototype.feed = function(ch){
             }
             break;
         case STATES.OSC:
+            debug("OSC", ch) // @debug
             if(ch !== 27 && ch !== 7){
                 //just ignore
                 break;
@@ -1543,9 +1569,11 @@ BasicStream.prototype.feed = function(ch){
 
             this.state = STATES.NORMAL;
             var funcname = CSI_FUNCS[ch]
+            debug(funcname, this.prefix, this.params, this.postfix) // @debug
             if(funcname){
                 this.dispatch(funcname, this.params)
             }else{
+                debug("unknown:", ch) // @debug
             }
     }
 }
@@ -1585,7 +1613,7 @@ exports.COLORS = ["black","red","green","yellow","blue","magenta","cyan","white"
 BrowserScreen = function(screen, context){
     this.screen = screen
     this.context = context;
-    this.backgroundColor = '#000'
+    this.backgroundColor = '#111'
     this.foregroundColor = '#fff'
     this.setFont("monospace")
 }
@@ -1600,11 +1628,11 @@ BrowserScreen.prototype.setFont = function(font){
 BrowserScreen.prototype.clear = function(){
     this.context.fillStyle = this.backgroundColor;
     if(this.screen.dirtyAll){
-        this.context.fillRect(0,0,1000,1000);
+        this.context.fillRect(0,0, COL_WIDTH * (this.screen.cols + 1), ROW_HEIGHT * this.screen.rows) 
         return;
     }
     for(var i in this.screen.dirty){
-        this.context.fillRect(0,ROW_HEIGHT * i,1000,ROW_HEIGHT);
+        this.context.fillRect(0,ROW_HEIGHT * i,COL_WIDTH*(this.screen.cols+1),ROW_HEIGHT);
     }
 }
 
@@ -1617,7 +1645,6 @@ BrowserScreen.prototype.canvasDisplay = function(){
         if( !this.screen.dirty[i] && !this.screen.dirtyAll){
             continue;
         }else{
-            console.log("redrawing", i);
         }
         //this.screen.dirty[i] = 0;
         for(var j=0;j<this.screen.cols;j++){
