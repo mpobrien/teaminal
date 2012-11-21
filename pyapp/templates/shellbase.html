@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block head %}
+    {{ super() }}
+    <script src="/static/js/gui.js"></script>
+    <script src="/static/socket.io.js"></script>
+    <script src="/static/teaminal.js"></script>
+    <script src="/static/websock_shell.js"></script>
+    <script>
+      Base64Binary = require('./b64binary').Base64Binary
+      function feedAll(stream, data){
+          for(var i=0;i<data.length;i++){
+              stream.feed(data[i])
+          }
+      }
+
+    </script>
+{% endblock %}
+
+
+{% block navbar %}
+    {{ super() }}
+    <!--a href="/" class="branding">Teaminal</a-->
+    <a href="#" id="settings">Settings</a>
+{% endblock %}
+
+{% block content %}
+    <canvas id="mycanvas" width="1000" height="600">
+    </canvas>
+
+{% include 'fontsettings_modal.html' %}
+{% endblock %}
+
+

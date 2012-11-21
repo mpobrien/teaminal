@@ -1,13 +1,11 @@
 from flask import Flask, render_template
 import sys
+import os
 
 
 def create_app(configname):
     app = Flask(__name__)
     app.config.from_object(configname)
-    if app.debug:
-        from flaskext.lesscss import lesscss
-        lesscss(app)
     return app
 
 if len(sys.argv) >= 2:
@@ -20,6 +18,11 @@ else:
 def index():
     return render_template("index.html");
 
+@app.route("/dev")
+def dev():
+    directory = os.path.abspath(os.path.join(os.path.dirname(__file__), 'static', 'testfiles'))
+    files = os.listdir(directory)
+    return render_template("test.html", files=files);
 
 if __name__ == "__main__":
     app.run(port=5000, host='0.0.0.0')

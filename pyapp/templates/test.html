@@ -1,0 +1,40 @@
+{% extends "shellbase.html" %}
+{% block head %}
+    {{ super() }}
+
+    <script>
+      $(document).ready(function(){
+          screen.debugMode = true
+          strm.setDebugMode(true, true)
+          br_screen.setFont('Monospace');
+          $('#run').click(function(){
+              var uintarray = Base64Binary.decode($('#testinput').val())
+              feedAll(strm, uintarray);
+              br_screen.clear()
+              br_screen.canvasDisplay()
+          });
+          $('#reset').click(function(){
+              setupTerminal()
+          });
+          $('#filepicker').change(function(){
+              $.get('/static/testfiles/' + $('#filepicker').val(), function(data){
+                  $('#testinput').val(data)
+              })
+          });
+      });
+    </script>
+{% endblock %}
+
+{% block content %}
+    {{super()}}
+    <select name="filepicker" id="filepicker">
+        {% for f in  files %}
+            <option value="{{f}}">{{f}}</option>
+        {% endfor %}
+    </select>
+    <textarea id="testinput">
+    </textarea>
+    <button id="run">run</button>
+    <button id="reset">reset</button>
+{%endblock%}
+

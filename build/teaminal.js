@@ -893,6 +893,8 @@ repeatprecchar
 
 function BasicScreen(rows, columns){
     this.rows = rows;
+    this.dirty = {};
+    this.dirtyAll = false;
     this.cols = columns;
     this.cursor = {x:0, y:0}
     this.margins = {top:0, bottom: rows-1}
@@ -998,7 +1000,7 @@ BasicScreen.prototype.log = function(){//{{{
     }
 }//}}}
 
-BasicScreen.prototype.canvasDisplay = function(context){
+BasicScreen.prototype.canvasDisplay = function(context){//{{{
     COL_WIDTH = 8;
     ROW_HEIGHT = 16;
     for(var i=0;i<this.rows;i++){
@@ -1009,8 +1011,7 @@ BasicScreen.prototype.canvasDisplay = function(context){
             }
         }
     }
-}
-
+}//}}}
 
 BasicScreen.prototype.defaultcharset = function(){
 }
@@ -1023,16 +1024,19 @@ BasicScreen.prototype.eraseinline = function(params){
         for(var i=this.cursor.x;i<this.cols;i++){
             this.data[this.cursor.y][i] = {}
         }
+        this.dirty[this.cursor.y] = 1
         //erase from cursor to EOL
     }else if(params[0] == 1){
         for(var i=0;i<=this.cursor.x;i++){
             this.data[this.cursor.y][i] = {}
         }
+        this.dirty[this.cursor.y] = 1
         //erase from beginning of line to cursor inclusive
     }else if(params[0] == 2){
         for(var i=0;i<this.cols;i++){
             this.data[this.cursor.y][i] = {}
         }
+        this.dirty[this.cursor.y] = 1
         //erase entire line
     }
 }
@@ -1106,17 +1110,20 @@ BasicScreen.prototype.eraseindisplay = function(params){
     if(!params || params[0] == 0){
         for(var i=this.cursor.y+1;i<this.rows;i++){
             this.data[i] = this.defaultLine(this.cols)
+            this.dirty[i] = 1
         }
         this.eraseinline([0])
     }else if(params[0] == 1){
         for(var i=0;i<this.cursor.y;i++){
             this.data[i] = this.defaultLine(this.cols)
+            this.dirty[i] = 1
         }
         this.eraseinline([1])
     }else if(params[0] == 2){
         for(var i=0;i<this.rows;i++){
             this.data[i] = this.defaultLine(this.cols)
         }
+        this.dirtyAll = true;
     }
 }
 
@@ -1185,6 +1192,7 @@ BasicScreen.prototype.draw = function(ch){
     if(this.bold) b.bold = true
     this.data[this.cursor.y][this.cursor.x] = b
     this.cursor.x += 1
+    this.dirty[this.cursor.y] = 1
 }
 
 BasicScreen.prototype.backspace = function(){
@@ -1197,6 +1205,7 @@ BasicScreen.prototype.index = function(){
         this.cursor.y = this.rows - 1;
         this.data.shift()
         this.data.push(this.defaultLine(this.cols))
+        this.dirtyAll = true;
     }else{
         this.cursordown()
     }
@@ -1567,6 +1576,8 @@ var BOLDCOLORS = [
     '#FFFFFF',//WHITE 
 ]
 
+COL_WIDTH = 7;
+ROW_HEIGHT = 14;
 exports.COLORS = ["black","red","green","yellow","blue","magenta","cyan","white","",""]
 
 
@@ -1576,21 +1587,39 @@ BrowserScreen = function(screen, context){
     this.context = context;
     this.backgroundColor = '#000'
     this.foregroundColor = '#fff'
+    this.setFont("monospace")
+}
+
+BrowserScreen.prototype.setFont = function(font){
+    this.font = '12px ' + font;
+    this.boldFont = 'bold 12px ' + font;
+    this.context.font = '12px ' + font;
 }
 
 
 BrowserScreen.prototype.clear = function(){
     this.context.fillStyle = this.backgroundColor;
-    this.context.fillRect(0,0,1000,1000);
+    if(this.screen.dirtyAll){
+        this.context.fillRect(0,0,1000,1000);
+        return;
+    }
+    for(var i in this.screen.dirty){
+        this.context.fillRect(0,ROW_HEIGHT * i,1000,ROW_HEIGHT);
+    }
 }
 
 BrowserScreen.prototype.canvasDisplay = function(){
     //this.context.font = '12px monospace';
-    COL_WIDTH = 7;
-    ROW_HEIGHT = 14;
     this.context.fillStyle = this.foregroundColor;
+    this.context.textBaseline = 'bottom';
     var curColor = undefined;
     for(var i=0;i<this.screen.rows;i++){
+        if( !this.screen.dirty[i] && !this.screen.dirtyAll){
+            continue;
+        }else{
+            console.log("redrawing", i);
+        }
+        //this.screen.dirty[i] = 0;
         for(var j=0;j<this.screen.cols;j++){
             var ch = this.screen.data[i][j]
             var outchar = String.fromCharCode(ch.d)
@@ -1598,14 +1627,13 @@ BrowserScreen.prototype.canvasDisplay = function(){
                 if(ch.c == undefined){
                     this.foregroundColor = 'white'
                     this.context.fillStyle = this.foregroundColor;
-                    this.context.font = '12px monospace';
                 }else if(ch.c != undefined && ch.c != curColor){
                     curColor = ch.c
                     this.foregroundColor = ch.bold ? BOLDCOLORS[ch.c] : COLORS[ch.c]
                     if(ch.bold){
-                        this.context.font = 'bold 12px monospace';
+                        this.context.font = this.font;
                     }else{
-                        this.context.font = '12px monospace';
+                        this.context.font = this.boldFont
                     }
                     this.context.fillStyle = this.foregroundColor;
                     //console.log("color",this.foregroundColor, ch.bold)
@@ -1614,6 +1642,8 @@ BrowserScreen.prototype.canvasDisplay = function(){
             }
         }
     }
+    this.screen.dirty = {};
+    this.screen.dirtyAll = false;
 }
 exports.BrowserScreen = BrowserScreen
 

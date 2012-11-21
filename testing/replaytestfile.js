@@ -2,14 +2,17 @@ var fs = require('fs')
 var argv = require('optimist')
            .boolean('r')
            .boolean('s')
+           .boolean('d')
            .argv;
 
-var BasicStream = require('../termstream').BasicStream
-var BasicScreen = require('../screen').BasicScreen
+var BasicStream = require('../lib/termstream').BasicStream
+var BasicScreen = require('../lib/screen').BasicScreen
 var strm = new BasicStream(); 
 var scrn = new BasicScreen(40, 80)
-//scrn.debugMode = true
-//strm.setDebugMode(true, true)
+if(argv.d){
+    scrn.debugMode = true
+    strm.setDebugMode(true, true)
+}
 strm.attach(scrn)
 
 var filename = process.argv[2]

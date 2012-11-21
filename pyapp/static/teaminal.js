@@ -1587,6 +1587,13 @@ BrowserScreen = function(screen, context){
     this.context = context;
     this.backgroundColor = '#000'
     this.foregroundColor = '#fff'
+    this.setFont("monospace")
+}
+
+BrowserScreen.prototype.setFont = function(font){
+    this.font = '12px ' + font;
+    this.boldFont = 'bold 12px ' + font;
+    this.context.font = '12px ' + font;
 }
 
 
@@ -1606,7 +1613,6 @@ BrowserScreen.prototype.canvasDisplay = function(){
     this.context.fillStyle = this.foregroundColor;
     this.context.textBaseline = 'bottom';
     var curColor = undefined;
-    console.log(this.screen.dirtyAll, "dirties",this.screen.dirty)
     for(var i=0;i<this.screen.rows;i++){
         if( !this.screen.dirty[i] && !this.screen.dirtyAll){
             continue;
@@ -1621,14 +1627,13 @@ BrowserScreen.prototype.canvasDisplay = function(){
                 if(ch.c == undefined){
                     this.foregroundColor = 'white'
                     this.context.fillStyle = this.foregroundColor;
-                    this.context.font = '12px monospace';
                 }else if(ch.c != undefined && ch.c != curColor){
                     curColor = ch.c
                     this.foregroundColor = ch.bold ? BOLDCOLORS[ch.c] : COLORS[ch.c]
                     if(ch.bold){
-                        this.context.font = 'bold 12px monospace';
+                        this.context.font = this.font;
                     }else{
-                        this.context.font = '12px monospace';
+                        this.context.font = this.boldFont
                     }
                     this.context.fillStyle = this.foregroundColor;
                     //console.log("color",this.foregroundColor, ch.bold)

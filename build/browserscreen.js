@@ -19,6 +19,8 @@ var BOLDCOLORS = [
     '#FFFFFF',//WHITE 
 ]
 
+COL_WIDTH = 7;
+ROW_HEIGHT = 14;
 exports.COLORS = ["black","red","green","yellow","blue","magenta","cyan","white","",""]
 
 
@@ -28,21 +30,39 @@ BrowserScreen = function(screen, context){
     this.context = context;
     this.backgroundColor = '#000'
     this.foregroundColor = '#fff'
+    this.setFont("monospace")
+}
+
+BrowserScreen.prototype.setFont = function(font){
+    this.font = '12px ' + font;
+    this.boldFont = 'bold 12px ' + font;
+    this.context.font = '12px ' + font;
 }
 
 
 BrowserScreen.prototype.clear = function(){
     this.context.fillStyle = this.backgroundColor;
-    this.context.fillRect(0,0,1000,1000);
+    if(this.screen.dirtyAll){
+        this.context.fillRect(0,0,1000,1000);
+        return;
+    }
+    for(var i in this.screen.dirty){
+        this.context.fillRect(0,ROW_HEIGHT * i,1000,ROW_HEIGHT);
+    }
 }
 
 BrowserScreen.prototype.canvasDisplay = function(){
     //this.context.font = '12px monospace';
-    COL_WIDTH = 7;
-    ROW_HEIGHT = 14;
     this.context.fillStyle = this.foregroundColor;
+    this.context.textBaseline = 'bottom';
     var curColor = undefined;
     for(var i=0;i<this.screen.rows;i++){
+        if( !this.screen.dirty[i] && !this.screen.dirtyAll){
+            continue;
+        }else{
+            console.log("redrawing", i);
+        }
+        //this.screen.dirty[i] = 0;
         for(var j=0;j<this.screen.cols;j++){
             var ch = this.screen.data[i][j]
             var outchar = String.fromCharCode(ch.d)
@@ -50,14 +70,13 @@ BrowserScreen.prototype.canvasDisplay = function(){
                 if(ch.c == undefined){
                     this.foregroundColor = 'white'
                     this.context.fillStyle = this.foregroundColor;
-                    this.context.font = '12px monospace';
                 }else if(ch.c != undefined && ch.c != curColor){
                     curColor = ch.c
                     this.foregroundColor = ch.bold ? BOLDCOLORS[ch.c] : COLORS[ch.c]
                     if(ch.bold){
-                        this.context.font = 'bold 12px monospace';
+                        this.context.font = this.font;
                     }else{
-                        this.context.font = '12px monospace';
+                        this.context.font = this.boldFont
                     }
                     this.context.fillStyle = this.foregroundColor;
                     //console.log("color",this.foregroundColor, ch.bold)
@@ -66,6 +85,8 @@ BrowserScreen.prototype.canvasDisplay = function(){
             }
         }
     }
+    this.screen.dirty = {};
+    this.screen.dirtyAll = false;
 }
 exports.BrowserScreen = BrowserScreen
 

@@ -1,0 +1,34 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN">
+<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    {% block head %}
+        <title>{% block title %}Teaminal{% endblock %}</title>
+
+        <script src="/static/jquery.js"></script>
+        <script type="text/javascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
+        <link href='http://fonts.googleapis.com/css?family=Numans' rel='stylesheet' type='text/css'/>
+        <link href='http://fonts.googleapis.com/css?family=Source+Code+Pro:400,700' rel='stylesheet' type='text/css'/>
+        <link href='http://fonts.googleapis.com/css?family=Inconsolata:400,700' rel='stylesheet' type='text/css'/>
+        {% if config.DEBUG %}
+            <link href="/static/main.less" rel="stylesheet/less" type="text/css"/>
+            <link href="/static/bootstrap/less/bootstrap.less" rel="stylesheet/less" type="text/css"/>
+            <script src="/static/less-1.3.1.min.js"></script>
+        {% else %}
+            <link href="/static/main.css" rel="stylesheet" type="text/css"/>
+            <link href="/static/bootstrap/less/bootstrap.css" rel="stylesheet" type="text/css"/>
+        {% endif %}
+    {% endblock %}
+</head>
+<body>
+    <div class="navbar navbar-fixed-top">
+        {% block navbar %}
+        {% endblock %}
+    </div>
+    <div id="content">{% block content %}{% endblock %}</div>
+    <div id="footer">
+        {% block footer %}
+        {% endblock %}
+    </div>
+</body>
+
