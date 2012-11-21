@@ -5,7 +5,7 @@ function setupTerminal(){
     var BasicScreen = require('./screen').BasicScreen
     var BrowserScreen = require('./browserscreen').BrowserScreen
     strm = new BasicStream(); 
-    screen = new BasicScreen(40, 80)
+    screen = new BasicScreen(26,101)
     var canvas = $('#mycanvas')[0]
     var context = canvas.getContext('2d');
     br_screen = new BrowserScreen(screen, context);
