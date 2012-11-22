@@ -73,6 +73,8 @@ function BasicScreen(rows, columns){
     }
     this.modes = {}
     this.color = undefined;
+    this.scrollstart = 0
+    this.scrollend = this.rows
     this.reset()
 }
 
@@ -159,6 +161,7 @@ BasicScreen.prototype.log = function(){//{{{
             var outchar = this.data[i][j].d || " "
             rowtext += outchar
         }
+        this.debug(rowtext) // @debug
     }
 }//}}}
 
@@ -176,9 +179,11 @@ BasicScreen.prototype.canvasDisplay = function(context){//{{{
 }//}}}
 
 BasicScreen.prototype.defaultcharset = function(){
+    this.debug("defaultcharset!", arguments); //@debug
 }
 
 BasicScreen.prototype.setcharset = function(){
+    this.debug("setcharset!", arguments); //@debug
 }
 
 BasicScreen.prototype.eraseinline = function(params){
@@ -201,33 +206,57 @@ BasicScreen.prototype.eraseinline = function(params){
         this.dirty[this.cursor.y] = 1
         //erase entire line
     }
+    this.debug("eraseinline!", arguments); //@debug
 }
  
 BasicScreen.prototype.hvpos = function(){
+    this.debug("hvpos!", arguments); //@debug
 }
 
 BasicScreen.prototype.resetmode = function(){
+    //this.debug("reset mode!", arguments); //@debug
 }
 
 BasicScreen.prototype.savecursor = function(){
+    this.debug("savecursor!", arguments); //@debug
 }
 
 BasicScreen.prototype.restorecursor = function(){
+    this.debug("restorecursor!", arguments); //@debug
 }
  
 
 BasicScreen.prototype.senddevattrs = function(){
+    this.debug("senddevattrs!", arguments); //@debug
 }
  
 
 BasicScreen.prototype.setmode = function(){
+    /*
+            Ps = 2  -> Keyboard Action Mode (AM).  Ps = 4  -> Insert Mode (IRM).
+            Ps = 1 2  -> Send/receive (SRM).
+            Ps = 2 0  -> Automatic Newline (LNM).
+    */
+    //this.debug("set mode!", arguments); //@debug
 }
 
-BasicScreen.prototype.setscrollreg = function(){
+BasicScreen.prototype.advanceScroll = function(){
+    this.data.splice(self.scrollstart, 1)
+    this.data.splice(self.scrollend, 0, this.defaultLine(this.cols))
+}
+
+BasicScreen.prototype.setscrollreg = function(params){
+    //TODO check prefix, if its private mode reset then do nothing here
+    if(!params[0]) params[0] = 1;
+    if(!params[1]) params[1] = this.rows;
+    this.scrollstart = params[0] - 1
+    this.scrollend = params[1] - 1
+    //this.debug("set scroll reg!", arguments); //@debug
 }
 
 BasicScreen.prototype.charattrs = function(){
     //console.log("SGR", arguments)
+    this.debug("select graphic rendition!", arguments[0], arguments[1]); //@debug
     if(arguments[0]){
         var colorCode = arguments[0][0];
         switch(colorCode){
@@ -287,9 +316,11 @@ BasicScreen.prototype.eraseindisplay = function(params){
         }
         this.dirtyAll = true;
     }
+    this.debug("erase in display!", arguments); //@debug
 }
 
 BasicScreen.prototype.cursorpos = function(params){
+    this.debug("cursor pos!", arguments); //@debug
     var row = params[0] - 1;
     var col;
     if (params.length >= 2) { 
@@ -350,8 +381,10 @@ BasicScreen.prototype.draw = function(ch){
         this.insertChars(1)
     }
 
+    //this.debug("screen drawing",this.cursor.y, this.cursor.x, ch) //@debug
     var b = {d:ch, c:this.color}
     if(this.bold) b.bold = true
+    if(this.bg) b.bg = this.bg
     this.data[this.cursor.y][this.cursor.x] = b
     this.cursor.x += 1
     this.dirty[this.cursor.y] = 1
@@ -365,8 +398,9 @@ BasicScreen.prototype.index = function(){
     //TODO handle scroll regions?
     if(this.cursor.y >= this.rows - 1){
         this.cursor.y = this.rows - 1;
-        this.data.shift()
-        this.data.push(this.defaultLine(this.cols))
+        this.advanceScroll()
+        //this.data.shift()
+        //this.data.push(this.defaultLine(this.cols))
         this.dirtyAll = true;
     }else{
         this.cursordown()

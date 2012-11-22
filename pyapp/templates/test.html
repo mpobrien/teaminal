@@ -7,18 +7,48 @@
           screen.debugMode = true
           strm.setDebugMode(true, true)
           br_screen.setFont('Monospace');
+          stepperIndex = 0
+          binaryData = null;
           $('#run').click(function(){
-              var uintarray = Base64Binary.decode($('#testinput').val())
-              feedAll(strm, uintarray);
+              while(stepperIndex<binaryData.length){
+                  strm.feed(binaryData[stepperIndex])
+                  stepperIndex++
+              }
               br_screen.clear()
               br_screen.canvasDisplay()
+              $('#stepposition').text(stepperIndex + " / " + binaryData.length);
           });
           $('#reset').click(function(){
               setupTerminal()
+              stepperIndex = 0
           });
+          $('#jump').click(function(){
+              var newPos = parseInt($('#jumppos').val());
+              while(stepperIndex < newPos){
+                  strm.feed(binaryData[stepperIndex])
+                  stepperIndex++
+              }
+              br_screen.clear()
+              br_screen.canvasDisplay()
+              $('#stepposition').text(stepperIndex + " / " + binaryData.length);
+          });
+
+
+          $('#step').click(function(){
+              stepAmt = parseInt($('#stepamount').val()) 
+              var stopAt = stepperIndex + stepAmt
+              while(stepperIndex < stopAt){
+                strm.feed(binaryData[stepperIndex])
+                stepperIndex++
+              }
+              $('#stepposition').text(stepperIndex + " / " + binaryData.length);
+              br_screen.clear()
+              br_screen.canvasDisplay()
+          })
           $('#filepicker').change(function(){
               $.get('/static/testfiles/' + $('#filepicker').val(), function(data){
                   $('#testinput').val(data)
+                  binaryData = Base64Binary.decode($('#testinput').val())
               })
           });
       });
@@ -27,14 +57,23 @@
 
 {% block content %}
     {{super()}}
-    <select name="filepicker" id="filepicker">
-        {% for f in  files %}
-            <option value="{{f}}">{{f}}</option>
-        {% endfor %}
-    </select>
-    <textarea id="testinput">
-    </textarea>
-    <button id="run">run</button>
-    <button id="reset">reset</button>
+    <div style="position:absolute; right:0px; top:50px"> <select name="filepicker" id="filepicker">
+            {% for f in  files %}
+                <option value="{{f}}">{{f}}</option>
+            {% endfor %}
+        </select>
+        <textarea id="testinput" disabled>
+        </textarea>
+        <button id="run">run</button>
+        <button id="step">step</button>
+        <button id="reset">reset</button>
+        <div>
+            <input type="text" id="stepamount" value="1"></input>
+            <input type="text" id="jumppos"></input>
+            <button id="jump">jump to</button>
+        </div>
+
+        <div id="stepposition"></div>
+    </div>
 {%endblock%}
 

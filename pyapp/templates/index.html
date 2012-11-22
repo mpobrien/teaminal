@@ -2,13 +2,19 @@
 {% block head %}
     {{ super() }}
 
-    <script>
+
+    <script type="text/javascript">
+
       {% if config.DEV %}
       var websock_url = 'http://dev.teaminal.net:80/';
       {% else %}
       var websock_url = 'http://teaminal.net:80/';
       {% endif %}
       $(document).ready(function(){
+        {% if debug %}
+            screen.debugMode = true
+            strm.setDebugMode(true, true)
+        {% endif %}
         socket = io.connect(websock_url);
         socket.send(JSON.stringify({sid:{{session|tojson|safe}}}));
         socket.on("message", function(data){

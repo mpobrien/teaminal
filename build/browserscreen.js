@@ -28,7 +28,7 @@ exports.COLORS = ["black","red","green","yellow","blue","magenta","cyan","white"
 BrowserScreen = function(screen, context){
     this.screen = screen
     this.context = context;
-    this.backgroundColor = '#000'
+    this.backgroundColor = '#111'
     this.foregroundColor = '#fff'
     this.setFont("monospace")
 }
@@ -43,11 +43,11 @@ BrowserScreen.prototype.setFont = function(font){
 BrowserScreen.prototype.clear = function(){
     this.context.fillStyle = this.backgroundColor;
     if(this.screen.dirtyAll){
-        this.context.fillRect(0,0,1000,1000);
+        this.context.fillRect(0,0, COL_WIDTH * (this.screen.cols + 2) , ROW_HEIGHT * this.screen.rows) 
         return;
     }
     for(var i in this.screen.dirty){
-        this.context.fillRect(0,ROW_HEIGHT * i,1000,ROW_HEIGHT);
+        this.context.fillRect(0,ROW_HEIGHT * i,COL_WIDTH*(this.screen.cols+2),ROW_HEIGHT);
     }
 }
 
@@ -60,7 +60,6 @@ BrowserScreen.prototype.canvasDisplay = function(){
         if( !this.screen.dirty[i] && !this.screen.dirtyAll){
             continue;
         }else{
-            console.log("redrawing", i);
         }
         //this.screen.dirty[i] = 0;
         for(var j=0;j<this.screen.cols;j++){
