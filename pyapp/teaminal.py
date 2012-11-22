@@ -14,9 +14,10 @@ else:
     app = create_app('dev')
 
 
-@app.route("/")
-def index():
-    return render_template("index.html");
+@app.route("/sessions/<session>")
+def index(session):
+    #TODO verify session id
+    return render_template("index.html", session=session);
 
 @app.route("/dev")
 def dev():
