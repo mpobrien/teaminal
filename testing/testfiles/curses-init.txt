@@ -1,0 +1,8 @@
+[?1034h[1;32mmike@mikes-MacBook-Pro[0;31m [01;34m~[1;32m[0;31m [0;34m$[00m python
+Python 2.7.3 (v2.7.3:70274d53c1dd, Apr  9 2012, 20:52:43) 
+[GCC 4.2.1 (Apple Inc. build 5666) (dot 3)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import curses
+>>> scr = curses.initscr()
+[?1049h[1;30r(B[m[4l[?7h>>> ^D
+[1;32mmike@mikes-MacBook-Pro[0;31m [01;34m~[1;32m[0;31m [0;34m$[00m exit
