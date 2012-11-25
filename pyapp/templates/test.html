@@ -10,10 +10,8 @@
           stepperIndex = 0
           binaryData = null;
           $('#run').click(function(){
-              while(stepperIndex<binaryData.length){
-                  strm.feed(binaryData[stepperIndex])
-                  stepperIndex++
-              }
+              strm.feed(binaryData.subarray(stepperIndex))
+              stepperIndex = binaryData.length
               br_screen.clear()
               br_screen.canvasDisplay()
               $('#stepposition').text(stepperIndex + " / " + binaryData.length);
@@ -24,10 +22,8 @@
           });
           $('#jump').click(function(){
               var newPos = parseInt($('#jumppos').val());
-              while(stepperIndex < newPos){
-                  strm.feed(binaryData[stepperIndex])
-                  stepperIndex++
-              }
+              strm.feed(binaryData.subarray(stepperIndex, newPos))
+              stepperIndex = newPos
               br_screen.clear()
               br_screen.canvasDisplay()
               $('#stepposition').text(stepperIndex + " / " + binaryData.length);
@@ -37,10 +33,9 @@
           $('#step').click(function(){
               stepAmt = parseInt($('#stepamount').val()) 
               var stopAt = stepperIndex + stepAmt
-              while(stepperIndex < stopAt){
-                strm.feed(binaryData[stepperIndex])
-                stepperIndex++
-              }
+
+              strm.feed(binaryData.subarray(stepperIndex, stopAt))
+              stepperIndex = stopAt
               $('#stepposition').text(stepperIndex + " / " + binaryData.length);
               br_screen.clear()
               br_screen.canvasDisplay()
