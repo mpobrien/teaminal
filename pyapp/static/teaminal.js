@@ -911,6 +911,8 @@ function BasicScreen(rows, columns){
     }
     this.modes = {}
     this.color = undefined;
+    this.scrollstart = 0
+    this.scrollend = this.rows
     this.reset()
 }
 
@@ -1050,7 +1052,7 @@ BasicScreen.prototype.hvpos = function(){
 }
 
 BasicScreen.prototype.resetmode = function(){
-    this.debug("reset mode!", arguments); //@debug
+    //this.debug("reset mode!", arguments); //@debug
 }
 
 BasicScreen.prototype.savecursor = function(){
@@ -1068,11 +1070,26 @@ BasicScreen.prototype.senddevattrs = function(){
  
 
 BasicScreen.prototype.setmode = function(){
-    this.debug("set mode!", arguments); //@debug
+    /*
+            Ps = 2  -> Keyboard Action Mode (AM).  Ps = 4  -> Insert Mode (IRM).
+            Ps = 1 2  -> Send/receive (SRM).
+            Ps = 2 0  -> Automatic Newline (LNM).
+    */
+    //this.debug("set mode!", arguments); //@debug
 }
 
-BasicScreen.prototype.setscrollreg = function(){
-    this.debug("set scroll reg!", arguments); //@debug
+BasicScreen.prototype.advanceScroll = function(){
+    this.data.splice(self.scrollstart, 1)
+    this.data.splice(self.scrollend, 0, this.defaultLine(this.cols))
+}
+
+BasicScreen.prototype.setscrollreg = function(params){
+    //TODO check prefix, if its private mode reset then do nothing here
+    if(!params[0]) params[0] = 1;
+    if(!params[1]) params[1] = this.rows;
+    this.scrollstart = params[0] - 1
+    this.scrollend = params[1] - 1
+    //this.debug("set scroll reg!", arguments); //@debug
 }
 
 BasicScreen.prototype.charattrs = function(){
@@ -1205,6 +1222,7 @@ BasicScreen.prototype.draw = function(ch){
     //this.debug("screen drawing",this.cursor.y, this.cursor.x, ch) //@debug
     var b = {d:ch, c:this.color}
     if(this.bold) b.bold = true
+    if(this.bg) b.bg = this.bg
     this.data[this.cursor.y][this.cursor.x] = b
     this.cursor.x += 1
     this.dirty[this.cursor.y] = 1
@@ -1218,8 +1236,9 @@ BasicScreen.prototype.index = function(){
     //TODO handle scroll regions?
     if(this.cursor.y >= this.rows - 1){
         this.cursor.y = this.rows - 1;
-        this.data.shift()
-        this.data.push(this.defaultLine(this.cols))
+        this.advanceScroll()
+        //this.data.shift()
+        //this.data.push(this.defaultLine(this.cols))
         this.dirtyAll = true;
     }else{
         this.cursordown()
@@ -1628,11 +1647,11 @@ BrowserScreen.prototype.setFont = function(font){
 BrowserScreen.prototype.clear = function(){
     this.context.fillStyle = this.backgroundColor;
     if(this.screen.dirtyAll){
-        this.context.fillRect(0,0, COL_WIDTH * (this.screen.cols + 1), ROW_HEIGHT * this.screen.rows) 
+        this.context.fillRect(0,0, COL_WIDTH * (this.screen.cols + 2) , ROW_HEIGHT * this.screen.rows) 
         return;
     }
     for(var i in this.screen.dirty){
-        this.context.fillRect(0,ROW_HEIGHT * i,COL_WIDTH*(this.screen.cols+1),ROW_HEIGHT);
+        this.context.fillRect(0,ROW_HEIGHT * i,COL_WIDTH*(this.screen.cols+2),ROW_HEIGHT);
     }
 }
 

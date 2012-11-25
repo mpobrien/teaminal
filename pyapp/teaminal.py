@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 import sys
 import os
 
@@ -14,9 +14,11 @@ else:
     app = create_app('dev')
 
 
-@app.route("/")
-def index():
-    return render_template("index.html");
+@app.route("/sessions/<session>")
+def index(session):
+    #TODO verify session id
+    debugmode = "debug" in request.args
+    return render_template("index.html", session=session, debug=debugmode);
 
 @app.route("/dev")
 def dev():

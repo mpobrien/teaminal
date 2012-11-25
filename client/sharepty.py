@@ -142,7 +142,7 @@ def main(args):
     elif "join" in args:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         ssl_sock = ssl.wrap_socket(s, ca_certs="/etc/ca_certs_file", cert_reqs=ssl.CERT_NONE)
-        ssl_sock.connect(('screenfags.com', 8000))
+        ssl_sock.connect(('teaminal.net', 8000))
         ssl_sock.write("join " + args[1]);
         #window = curses.initscr()
         #curses.savetty()

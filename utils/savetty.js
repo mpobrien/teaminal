@@ -9,8 +9,8 @@ outstream = fs.createWriteStream('outfile.txt', {flags:'w'})
 outstream.on("open", function(){
     var term = pty.spawn('bash', [], {
           name: 'xterm-256color',
-          cols: 80,
-          rows: 30,
+          cols: 101,
+          rows: 26,
           cwd: process.env.HOME,
           env: process.env
     });

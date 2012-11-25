@@ -2,25 +2,32 @@
 {% block head %}
     {{ super() }}
 
-    <script>
+
+    <script type="text/javascript">
+
       {% if config.DEV %}
-          var websock_url = 'http://dev.teaminal.net:80/';
+      var websock_url = 'http://dev.teaminal.net:80/';
       {% else %}
-          var websock_url = 'http://teaminal.net:80/';
+      var websock_url = 'http://teaminal.net:80/';
       {% endif %}
       $(document).ready(function(){
+        {% if debug %}
+            screen.debugMode = true
+            strm.setDebugMode(true, true)
+        {% endif %}
         socket = io.connect(websock_url);
-        socket.send(JSON.stringify({sid:"abcd"}));
+        socket.send(JSON.stringify({sid:{{session|tojson|safe}}}));
         socket.on("message", function(data){
             var uintarray = Base64Binary.decode(data)
-            feedAll(strm, uintarray);
+            strm.feed(uintarray)
+            //feedAll(strm, uintarray);
             br_screen.clear()
             br_screen.canvasDisplay()
         });
 
         $(document).keypress(function(e){
             var code = (e.keyCode ? e.keyCode : e.which);
-            console.log(code);
+            //console.log(code);
             if(code == 13){
               socket.send('\n');
             }else if(code == 9){
@@ -32,7 +39,7 @@
             }else{
               socket.send(String.fromCharCode(e.charCode));
             }
-            console.log("keycode", e);
+            //console.log("keycode", e);
             e.preventDefault();
          }).keydown(function(e){
             var code = (e.keyCode ? e.keyCode : e.which);

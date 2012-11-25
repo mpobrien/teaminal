@@ -3,16 +3,27 @@ var fs = require('fs')
 var READY = 0;
 var CONNECTED = 1;
 
+function randomString(len, charSet) {
+    charSet = charSet || "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    var randomString = '';
+    for (var i = 0; i < len; i++) {
+        var randomPoz = Math.floor(Math.random() * charSet.length);
+        randomString += charSet.substring(randomPoz,randomPoz+1);
+    }
+    return randomString;
+}
+
 SessionManager  = function(){
     this.sessions = {};
 }
+
+SESSION_ID_SIZE = 3
 
 SessionManager.prototype.bindToIo = function(io){
     var self = this;
     io.sockets.on('connection', function(socket){
 
         socket.on("connect", function(d){
-            console.log("new incoming connection.");
             var session = self.sessions[d.sid];
             if(!session) return;
             socket.endpoint = session.host;
@@ -55,7 +66,7 @@ SessionManager.prototype.serveTcp = function(){
                 }
             }else{
                 if(data.toString("utf-8") == 'createsession'){
-                    c.session =  "abcd"//randomString(SESSION_ID_SIZE);
+                    c.session =  randomString(SESSION_ID_SIZE);
                     c.webclient = []
                     self.sessions[c.session] = {host:c, state:READY}
                     c.write(c.session);
