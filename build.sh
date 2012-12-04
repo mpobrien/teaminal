@@ -26,10 +26,11 @@ done
 for file in $HERE/testing/testfiles/*
 do
     justfile=$(basename $file)
+    echo "converting $file"
     node $HERE/b64converter.js --file=$file > $HERE/pyapp/static/testfiles/$justfile
 done
 
-browserify $HERE/build/screen.js $HERE/build/termstream.js $HERE/build/browserscreen.js $HERE/build/b64binary.js > $HERE/build/teaminal.js 
+node $HERE/node_modules/browserify/bin/cmd.js $HERE/build/screen.js $HERE/build/termstream.js $HERE/build/browserscreen.js $HERE/build/b64binary.js --exports require > $HERE/build/teaminal.js 
 cp $HERE/build/teaminal.js $HERE/pyapp/static/teaminal.js
 lessc -x --yui-compress $HERE/pyapp/static/bootstrap/less/bootstrap.less $HERE/pyapp/static/bootstrap/css/bootstrap.css
 lessc -x --yui-compress $HERE/pyapp/static/main.less $HERE/pyapp/static/main.css
