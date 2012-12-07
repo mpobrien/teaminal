@@ -33,16 +33,26 @@
             }else if(code == 9){
               console.log("tab press");
               socket.send('\t');
-            }else if(code == 8){
-              socket.send('\b');
-              return false;
             }else{
               socket.send(String.fromCharCode(e.charCode));
             }
-            //console.log("keycode", e);
             e.preventDefault();
          }).keydown(function(e){
             var code = (e.keyCode ? e.keyCode : e.which);
+
+            if(code == 37){
+              socket.send('\x1b[D');
+            }
+            if(code == 38){
+              socket.send('\x1b[A');
+            }
+            if(code == 39){
+              socket.send('\x1b[C');
+            }
+            if(code == 40){
+              socket.send('\x1b[B');
+            }
+
             if(code == 8){
               socket.send('\b');
               return false;
