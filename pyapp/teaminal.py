@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
+import pymongo
 import sys
 import os
-
 
 def create_app(configname):
     app = Flask(__name__)
@@ -13,6 +13,9 @@ if len(sys.argv) >= 2:
 else:
     app = create_app('dev')
 
+@app.route("/")
+def home():
+    return render_template("home.html")
 
 @app.route("/sessions/<session>")
 def index(session):
