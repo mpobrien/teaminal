@@ -7,9 +7,16 @@
 
       {% if config.DEV %}
       var websock_url = 'http://dev.teaminal.net:80/';
+      var feeddebug = false;
+      function debugMode(settings){
+          screen.debugMode = settings
+          strm.setDebugMode(settings, settings)
+          feeddebug = settings;
+      }
       {% else %}
       var websock_url = 'http://teaminal.net:80/';
       {% endif %}
+
       $(document).ready(function(){
         {% if debug %}
             screen.debugMode = true
@@ -18,12 +25,16 @@
         socket = io.connect(websock_url);
         socket.send(JSON.stringify({sid:{{session|tojson|safe}}}));
         socket.on("message", function(data){
+            if(feeddebug){
+                console.log(data)
+            }
             var uintarray = Base64Binary.decode(data)
             strm.feed(uintarray)
             //feedAll(strm, uintarray);
             br_screen.clear()
             br_screen.canvasDisplay()
         });
+
 
         $(document).keypress(function(e){
             var code = (e.keyCode ? e.keyCode : e.which);
