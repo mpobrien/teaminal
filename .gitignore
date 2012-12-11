@@ -1,0 +1,7 @@
+build/
+pyapp/static/testfiles/
+pyapp/venv/
+utils/venv/
+node_modules/
+pyapp/static/*.css
+pyapp/static/teaminal.js
